@@ -506,6 +506,7 @@ let currentSongIndex = 0, currentSegmentIndex = 0, taskIndex = 0;
 let hasShownDragDemo = false;
 let kbTimers = [];
 let isPlayingFullMelody = false;
+let isPlayingSegmentDemo = false;
 function kbSetTimeout(fn, ms) {
   const id = setTimeout(fn, ms);
   kbTimers.push(id);
@@ -668,23 +669,72 @@ function renderMelody(silent) {
   document.querySelectorAll('.animal-item').forEach(el => el.classList.remove('selected'));
 }
 
-function playFullMelody() {
-  const song = songList[currentSongIndex];
-  const durations = song.durationBeats || song.notes.map(() => 1);
+function playMelodySequence(notes, durations, onNote, onDone, extraTailMs) {
   isBusy = true;
-  isPlayingFullMelody = true;
-  successMsg.innerHTML = `🎉 太棒了！听一遍《${song.name}》～ <span class="en">Great! Listen to ${song.enName}</span>`;
   let delay = 0;
-  song.notes.forEach((noteName, i) => {
+  notes.forEach((noteName, i) => {
     const beats = durations[i] || 1;
     const noteDurSec = Math.min(2.0, (beats * MELODY_BEAT_MS) / 1000 * 0.85);
     kbSetTimeout(() => {
+      if (onNote) onNote(noteName, i);
       highlightKey(noteName);
       playNote(noteName, noteDurSec);
     }, delay);
     delay += beats * MELODY_BEAT_MS;
   });
-  kbSetTimeout(() => {
+  kbSetTimeout(() => { if (onDone) onDone(); }, delay + (extraTailMs || 400));
+}
+
+function afterSegmentDemo(silent) {
+  isPlayingSegmentDemo = false;
+  const song = songList[currentSongIndex];
+  if (currentSegmentIndex + 1 < song.segments.length) {
+    currentSegmentIndex++;
+    taskIndex = 0;
+    renderMelody(silent);
+    if (!silent) {
+      successMsg.innerHTML = `✅ 本段完成！进入下一段！<span class="en">Segment done! Next segment!</span>`;
+    }
+  } else if (!silent && panelKeyboard.classList.contains('active')) {
+    playFullMelody();
+  } else {
+    currentSongIndex = (currentSongIndex + 1) % songList.length;
+    currentSegmentIndex = 0;
+    taskIndex = 0;
+    updateSongButtons();
+    renderMelody(true);
+  }
+}
+
+function playSegmentMelody() {
+  const song = songList[currentSongIndex];
+  const notes = song.segments[currentSegmentIndex];
+  const start = currentSegmentIndex * 4;
+  const allDurations = song.durationBeats || song.notes.map(() => 1);
+  const durations = allDurations.slice(start, start + notes.length);
+  isPlayingSegmentDemo = true;
+  successMsg.innerHTML = `🎵 听一听这一段～ <span class="en">Listen to this part</span>`;
+  [...melodyRow.children].forEach(el => {
+    el.classList.remove('current');
+    el.classList.add('done');
+  });
+  playMelodySequence(notes, durations, (_noteName, i) => {
+    [...melodyRow.children].forEach((el, idx) => {
+      el.classList.toggle('current', idx === i);
+      el.classList.toggle('done', idx < i);
+    });
+  }, () => {
+    isPlayingSegmentDemo = false;
+    afterSegmentDemo(false);
+  }, 500);
+}
+
+function playFullMelody() {
+  const song = songList[currentSongIndex];
+  const durations = song.durationBeats || song.notes.map(() => 1);
+  isPlayingFullMelody = true;
+  successMsg.innerHTML = `🎉 太棒了！整首再听一遍《${song.name}》～ <span class="en">Great! Listen to the whole ${song.enName}</span>`;
+  playMelodySequence(song.notes, durations, null, () => {
     isPlayingFullMelody = false;
     currentSongIndex = (currentSongIndex + 1) % songList.length;
     currentSegmentIndex = 0;
@@ -692,7 +742,7 @@ function playFullMelody() {
     updateSongButtons();
     successMsg.innerHTML = `⭐ 进入下一首：${songList[currentSongIndex].name} <span class="en">Next: ${songList[currentSongIndex].enName}</span>`;
     renderMelody();
-  }, delay + 800);
+  }, 800);
 }
 
 function handlePlace(animalKey, keyElement) {
@@ -727,20 +777,10 @@ function handlePlace(animalKey, keyElement) {
       if (currentKbLevel === 3) {
         const tasks = getCurrentSegmentTasks();
         if (taskIndex >= tasks.length) {
-          const song = songList[currentSongIndex];
-          if (currentSegmentIndex + 1 < song.segments.length) {
-            currentSegmentIndex++; taskIndex = 0;
-            renderMelody();
-            successMsg.innerHTML = `✅ 本段完成！进入下一段！<span class="en">Segment done! Next segment!</span>`;
-          } else if (panelKeyboard.classList.contains('active')) {
-            playFullMelody();
+          if (panelKeyboard.classList.contains('active')) {
+            playSegmentMelody();
           } else {
-            // 面板已隐藏：跳过整曲示范，静默进入下一首
-            currentSongIndex = (currentSongIndex + 1) % songList.length;
-            currentSegmentIndex = 0;
-            taskIndex = 0;
-            updateSongButtons();
-            renderMelody(true);
+            afterSegmentDemo(true);
           }
         } else {
           renderMelody();
@@ -800,6 +840,7 @@ function buildSongSelect() {
 function switchKbLevel(level) {
   clearKbTimers();
   isPlayingFullMelody = false;
+  isPlayingSegmentDemo = false;
   currentKbLevel = level;
   document.querySelectorAll('.level-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.kbLevel == level));
   isBusy = false;
@@ -939,6 +980,12 @@ tabBeat.addEventListener('click',()=>{
     updateSongButtons();
     isBusy = false;
     renderMelody(true);
+  } else if (isPlayingSegmentDemo) {
+    // 段落示范被打断：静默进入下一段（最后一段则跳过整曲示范）
+    clearKbTimers();
+    isPlayingSegmentDemo = false;
+    isBusy = false;
+    afterSegmentDemo(true);
   }
   // 答题反馈中的短计时器保留，会在面板隐藏时静默完成推进
 });
