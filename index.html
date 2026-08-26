@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>乐理游戏 · 节拍 + 音名（响应式）</title>
+<style>
+  /* ========== 全局重置与基础 ========== */
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(160deg, #FF6F91, #4FC3F7);
+    min-height: 100vh;
+    padding: 10px;
+  }
+  body { display: flex; justify-content: center; align-items: flex-start; }
+  .app {
+    width: 100%;
+    max-width: 600px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 30px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    border: 5px solid #fff;
+    text-align: center;
+  }
+  .en {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+  }
+  h2 { font-size: 1.4rem; margin-bottom: 4px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab {
+    flex: 1; border: none; background: #FFE3E8; color: #4A3B52;
+    font-size: 0.95rem; font-weight: 800; padding: 10px 4px;
+    border-radius: 20px; cursor: pointer; transition: 0.2s;
+  }
+  .tab.active { background: #FFD166; box-shadow: 0 3px 0 #D19A2E; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ========== 节拍游戏 ========== */
+  .stage-select { display: flex; gap: 6px; margin-bottom: 10px; }
+  .stage-btn {
+    flex: 1; border: none; background: #FFF0E8; color: #4A3B52;
+    font-size: 0.85rem; font-weight: 800; padding: 10px 2px;
+    border-radius: 16px; cursor: pointer; transition: 0.2s;
+  }
+  .stage-btn.active { background: #FFD166; box-shadow: 0 2px 0 #D19A2E; }
+  .level-info { font-size: 0.75rem; color: #999; font-weight: 700; margin-bottom: 10px; }
+  .beat-note {
+    background: #FFF0E8; border-radius: 18px; padding: 12px;
+    border: 3px solid #FFD166; margin-bottom: 12px;
+    display: flex; justify-content: center; align-items: center;
+    gap: 12px; min-height: 120px;
+  }
+  .beat-row {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+    gap: 6px; margin-bottom: 12px; padding: 10px;
+    background: #FFF0E8; border-radius: 18px; border: 3px solid #FFD166;
+    min-height: 110px;
+  }
+  .beat-item {
+    display: flex; flex-direction: column; align-items: center;
+    background: rgba(255,255,255,0.7); border: 3px solid transparent;
+    border-radius: 12px; padding: 6px 4px; transition: 0.2s;
+  }
+  .beat-item.current {
+    border-color: #FF6F91; background: #FFE3E8;
+    box-shadow: 0 0 10px rgba(255,111,145,0.5); transform: scale(1.05);
+  }
+  .beat-item .beat-label { font-size: 0.7rem; font-weight: 700; color: #4A3B52; margin-top: 2px; }
+  .beat-btn {
+    width: 120px; height: 120px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #FFF0B3, #FFD166 60%, #FFB347);
+    border: none; box-shadow: 0 7px 0 #D19A2E, 0 10px 18px rgba(0,0,0,0.15);
+    cursor: pointer; transition: 0.1s; margin: 10px auto 12px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 0.9rem; color: transparent;
+  }
+  .beat-btn:active { transform: translateY(4px); box-shadow: 0 3px 0 #D19A2E; }
+  .beat-message { font-size: 0.9rem; font-weight: 800; color: #4A3B52; min-height: 24px; }
+  /* 认识时值：放大音符图标 */
+  .beat-note .animal-part svg { width: 110px; height: auto; }
+  .beat-note .note-part svg { width: 40px; height: auto; }
+  .beat-item .animal-icon svg { width: 72px; height: auto; }
+  .beat-item .note-icon svg { width: 30px; height: auto; }
+
+  /* ========== 我是谁？ ========== */
+  .level-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+  .level-tab {
+    flex: 1; border: none; background: #FFE3E8; color: #4A3B52;
+    font-size: 0.8rem; font-weight: 800; padding: 10px 2px;
+    border-radius: 14px; cursor: pointer; transition: 0.2s;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .level-tab.active { background: #FFD166; box-shadow: 0 2px 0 #D19A2E; }
+
+  .song-select { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 8px; }
+  .song-btn {
+    border: none; background: #FFF0E8; color: #4A3B52;
+    font-size: 0.75rem; font-weight: 700; padding: 6px 8px;
+    border-radius: 12px; cursor: pointer; transition: 0.2s;
+    border: 1px solid transparent;
+  }
+  .song-btn.active { background: #FFD166; box-shadow: 0 2px 0 #D19A2E; border-color: #D19A2E; }
+
+  .task-box {
+    background: #FFE3E8; border-radius: 16px; padding: 10px;
+    margin-bottom: 10px; font-size: 0.9rem; font-weight: 800; color: #4A3B52;
+    min-height: 60px; display: flex; justify-content: center; align-items: center;
+    gap: 4px; flex-wrap: wrap;
+  }
+  .task-box .highlight {
+    background: #FFD166; border-radius: 8px; padding: 2px 6px; display: inline-block;
+  }
+
+  .animal-bar {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 6px; margin-bottom: 10px; padding: 8px;
+    background: #FFF0E8; border-radius: 16px;
+  }
+  .animal-item {
+    background: #fff; border: 2px solid transparent; border-radius: 12px;
+    padding: 4px 6px; cursor: grab; transition: 0.2s;
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 50px; user-select: none; -webkit-user-select: none;
+    touch-action: none;
+  }
+  .animal-item:active { cursor: grabbing; }
+  .animal-item:hover { border-color: #FFD166; transform: translateY(-2px); }
+  .animal-item.selected { border-color: #FF6F91; background: #FFE3E8; box-shadow: 0 2px 0 #D96C89; }
+  .animal-item.dragging { opacity: 0.4; }
+  .animal-item .animal-name { font-size: 0.7rem; font-weight: 700; color: #4A3B52; }
+  .animal-item .animal-key { font-size: 0.6rem; color: #999; font-weight: 700; }
+
+  .melody-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+  .melody-note {
+    width: 30px; height: 30px; background: #FFF0E8;
+    border-radius: 8px; display: flex; justify-content: center; align-items: center;
+    font-size: 0.9rem; font-weight: 800; color: #4A3B52;
+    border: 2px solid transparent;
+  }
+  .melody-note.current {
+    border-color: #FF6F91; background: #FFD166;
+    transform: scale(1.1);
+  }
+  .melody-note.done { background: #C8E6C9; border-color: #7ED9A8; }
+
+  .keyboard-tip { font-size: 0.7rem; color: #888; margin: 6px 0; }
+  .success-msg { font-size: 0.9rem; font-weight: 800; color: #FF6F91; min-height: 24px; margin-top: 4px; }
+  .progress { color: #aaa; font-size: 0.7rem; font-weight: 700; margin-bottom: 6px; }
+
+  svg .key-white { cursor: pointer; transition: 0.1s; }
+  svg .key-white:hover { fill: #FFE3E8; }
+  svg .key-white.correct { fill: #7ED9A8; }
+  svg .key-white.wrong { fill: #FFB3B3; }
+  svg .key-white.shake { animation: shake 0.4s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+  }
+
+  /* ========== 响应式适配 ========== */
+  /* 手机（窄屏） */
+  @media (max-width: 480px) {
+    body { padding: 6px; align-items: flex-start; }
+    .app {
+      padding: 12px;
+      border-radius: 20px;
+      border-width: 4px;
+      margin: 5px auto;
+    }
+    h2 { font-size: 1.1rem; }
+    .tab { font-size: 0.8rem; padding: 8px 2px; }
+    .level-tab { font-size: 0.7rem; padding: 8px 1px; }
+    .level-tab .en { font-size: 0.55rem; }
+    .task-box { font-size: 0.8rem; min-height: 55px; }
+    .beat-btn { width: 100px; height: 100px; }
+    .animal-item { min-width: 42px; padding: 3px 4px; }
+    .animal-item svg { width: 30px !important; height: 30px !important; }
+    .melody-note { width: 26px; height: 26px; font-size: 0.75rem; }
+    .keyboard-tip { font-size: 0.6rem; }
+  }
+
+  /* iPad / 平板（中等屏及以上） */
+  @media (min-width: 481px) {
+    .app { max-width: 880px; padding: 28px; }
+    h2 { font-size: 2rem; }
+    .tab { font-size: 1.2rem; padding: 14px 6px; }
+    .stage-btn { font-size: 1.05rem; }
+    .level-tab { font-size: 1rem; }
+    .level-tab .en { font-size: 0.7rem; }
+    .task-box { font-size: 1.15rem; }
+    .animal-item { min-width: 76px; padding: 8px 10px; }
+    .animal-item svg { width: 48px !important; height: 48px !important; }
+    .animal-item .animal-name { font-size: 0.95rem; }
+    .animal-item .animal-key { font-size: 0.8rem; }
+    .melody-note { width: 42px; height: 42px; font-size: 1.1rem; }
+    .beat-btn { width: 180px; height: 180px; }
+    .keyboard-tip { font-size: 0.85rem; }
+    .success-msg { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h2>🎵 乐理小游戏 <span class="en">Music Theory Game</span></h2>
+  <div class="tabs">
+    <button class="tab active" id="tabBeat">🎵 节拍游戏 <span class="en">Beat Game</span></button>
+    <button class="tab" id="tabKeyboard">🐸 我是谁？<span class="en">Who Am I?</span></button>
+  </div>
+
+  <!-- 节拍游戏面板 -->
+  <div class="panel active" id="beatPanel">
+    <div class="stage-select">
+      <button class="stage-btn active" data-stage="learn">认识时值 <span class="en">Learn Values</span></button>
+      <button class="stage-btn" data-stage="random">随机排列 <span class="en">Random Order</span></button>
+    </div>
+    <div class="level-info" id="beatLevelInfo"></div>
+    <div id="beatDisplayArea"></div>
+    <button class="beat-btn" id="beatBtn"></button>
+    <div class="beat-message" id="beatMsg"></div>
+  </div>
+
+  <!-- 我是谁？三关面板 -->
+  <div class="panel" id="keyboardPanel">
+    <div class="level-tabs">
+      <button class="level-tab active" data-kb-level="1">认识音名 <span class="en">Learn Notes</span></button>
+      <button class="level-tab" data-kb-level="2">帮我找位置 <span class="en">Find Position</span></button>
+      <button class="level-tab" data-kb-level="3">旋律游戏 <span class="en">Melody Game</span></button>
+    </div>
+
+    <div id="kbTaskArea">
+      <div class="song-select" id="songSelect" style="display:none;"></div>
+      <div class="progress" id="progress"></div>
+      <div class="task-box" id="taskBox"></div>
+      <div class="melody-row" id="melodyRow" style="display:none;"></div>
+      <div class="animal-bar" id="animalBar"></div>
+    </div>
+
+    <svg id="keyboardSvg" viewBox="0 0 560 180" style="width:100%; height:auto;">
+      <rect x="10"  y="20" width="70" height="140" rx="4" class="key-white" data-key="C4" fill="#fff" stroke="#333" stroke-width="2"/>
+      <rect x="85"  y="20" width="70" height="140" rx="4" class="key-white" data-key="D"  fill="#fff" stroke="#333" stroke-width="2"/>
+      <rect x="160" y="20" width="70" height="140" rx="4" class="key-white" data-key="E"  fill="#fff" stroke="#333" stroke-width="2"/>
+      <rect x="235" y="20" width="70" height="140" rx="4" class="key-white" data-key="F"  fill="#fff" stroke="#333" stroke-width="2"/>
+      <rect x="310" y="20" width="70" height="140" rx="4" class="key-white" data-key="G"  fill="#fff" stroke="#333" stroke-width="2"/>
+      <rect x="385" y="20" width="70" height="140" rx="4" class="key-white" data-key="A"  fill="#fff" stroke="#333" stroke-width="2"/>
+      <rect x="460" y="20" width="70" height="140" rx="4" class="key-white" data-key="B"  fill="#fff" stroke="#333" stroke-width="2"/>
+      <rect x="55"  y="20" width="45" height="85" rx="5" fill="#333"/>
+      <rect x="130" y="20" width="45" height="85" rx="5" fill="#333"/>
+      <rect x="280" y="20" width="45" height="85" rx="5" fill="#333"/>
+      <rect x="355" y="20" width="45" height="85" rx="5" fill="#333"/>
+      <rect x="430" y="20" width="45" height="85" rx="5" fill="#333"/>
+      <text x="45" y="175" font-size="18" font-weight="bold" fill="#FF6F91" text-anchor="middle">C</text>
+      <text x="120" y="175" font-size="16" fill="#888" text-anchor="middle">D</text>
+      <text x="195" y="175" font-size="16" fill="#888" text-anchor="middle">E</text>
+      <text x="270" y="175" font-size="16" fill="#888" text-anchor="middle">F</text>
+      <text x="345" y="175" font-size="16" fill="#888" text-anchor="middle">G</text>
+      <text x="420" y="175" font-size="16" fill="#888" text-anchor="middle">A</text>
+      <text x="495" y="175" font-size="16" fill="#888" text-anchor="middle">B</text>
+    </svg>
+    <div class="keyboard-tip">直接拖拽小动物到琴键上，或先点选再点琴键 <span class="en">Drag the animal to the key, or select it first</span></div>
+    <div class="success-msg" id="successMsg"></div>
+  </div>
+</div>
+
+<script>
+// ========== 音频系统 ==========
+let audioCtx = null;
+function playBeep(freq, dur) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + dur);
+  } catch (e) {}
+}
+function playNote(noteName, dur = 0.3) {
+  const freqs = { 'C4': 262, 'D': 294, 'E': 330, 'F': 349, 'G': 392, 'A': 440, 'B': 494 };
+  playBeep(freqs[noteName] || 262, dur);
+}
+function speakLetter(noteName) {
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+    const letter = noteName === 'C4' ? 'C' : noteName;
+    const u = new SpeechSynthesisUtterance(letter);
+    u.lang = 'en-US';
+    u.rate = 0.7;
+    u.pitch = 1.2;
+    u.volume = 0.15;
+    speechSynthesis.speak(u);
+  }
+}
+function speakNumber(n) {
+  const texts = ['one','two','three','four','five'];
+  if (n < 1 || n > texts.length) return;
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(texts[n-1]);
+    u.lang = 'en-US';
+    u.rate = 0.8;
+    u.pitch = 1.2;
+    u.volume = 0.5;
+    speechSynthesis.speak(u);
+  }
+}
+
+// ========== 节拍游戏 ==========
+const beatNotePool = {
+  quarter: { name:'四分音符', taps:1, animalSvg:`<svg width="50" height="42" viewBox="0 0 90 70"><path d="M 32 38 Q 58 32 72 16 Q 62 38 78 48 Q 56 40 32 44 Z" fill="#333"/><ellipse cx="26" cy="38" rx="20" ry="16" fill="#333"/><circle cx="19" cy="32" r="3" fill="#fff"/><circle cx="33" cy="32" r="3" fill="#fff"/><circle cx="12" cy="43" r="4" fill="#FF6F91" opacity="0.7"/><circle cx="40" cy="43" r="4" fill="#FF6F91" opacity="0.7"/></svg>`, noteSvg:`<svg width="14" height="34" viewBox="0 0 20 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#333"/><rect x="14" y="6" width="3" height="28" fill="#333"/></svg>` },
+  half: { name:'二分音符', taps:2, animalSvg:`<svg width="50" height="42" viewBox="0 0 90 70"><path d="M 32 38 Q 58 32 72 16 Q 62 38 78 48 Q 56 40 32 44 Z" fill="#333"/><ellipse cx="26" cy="38" rx="20" ry="16" fill="#fff" stroke="#333" stroke-width="3"/><circle cx="19" cy="32" r="3" fill="#333"/><circle cx="33" cy="32" r="3" fill="#333"/><circle cx="12" cy="43" r="4" fill="#FF6F91" opacity="0.8"/><circle cx="40" cy="43" r="4" fill="#FF6F91" opacity="0.8"/><path d="M 20 44 Q 26 48 32 44" stroke="#333" stroke-width="2" fill="none"/></svg>`, noteSvg:`<svg width="14" height="34" viewBox="0 0 20 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#fff" stroke="#333" stroke-width="2.5"/><rect x="14" y="6" width="3" height="28" fill="#333"/></svg>` },
+  dottedHalf: { name:'附点二分音符', taps:3, animalSvg:`<svg width="50" height="42" viewBox="0 0 90 70"><path d="M 32 38 Q 58 32 72 16 Q 62 38 78 48 Q 56 40 32 44 Z" fill="#333"/><ellipse cx="26" cy="38" rx="20" ry="16" fill="#fff" stroke="#333" stroke-width="3"/><circle cx="19" cy="32" r="3" fill="#333"/><circle cx="33" cy="32" r="3" fill="#333"/><path d="M 20 44 Q 26 48 32 44" stroke="#333" stroke-width="2" fill="none"/><circle cx="37" cy="41" r="3.5" fill="#333"/></svg>`, noteSvg:`<svg width="20" height="34" viewBox="0 0 28 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#fff" stroke="#333" stroke-width="2.5"/><rect x="14" y="6" width="3" height="28" fill="#333"/><circle cx="22" cy="36" r="4" fill="#333"/></svg>` },
+  whole: { name:'全音符', taps:4, animalSvg:`<svg width="50" height="46" viewBox="0 0 90 80"><ellipse cx="45" cy="68" rx="38" ry="10" fill="#7ED9A8" stroke="#333" stroke-width="2"/><ellipse cx="45" cy="48" rx="24" ry="20" fill="#8EE5B1" stroke="#333" stroke-width="2"/><circle cx="30" cy="32" r="12" fill="#8EE5B1" stroke="#333" stroke-width="2"/><circle cx="60" cy="32" r="12" fill="#8EE5B1" stroke="#333" stroke-width="2"/><circle cx="32" cy="33" r="5" fill="#333"/><circle cx="58" cy="33" r="5" fill="#333"/><circle cx="35" cy="31" r="2" fill="#fff"/><circle cx="61" cy="31" r="2" fill="#fff"/><path d="M 34 52 Q 45 60 56 52" stroke="#333" stroke-width="2" fill="none"/><circle cx="25" cy="46" r="5" fill="#FF6F91" opacity="0.8"/><circle cx="65" cy="46" r="5" fill="#FF6F91" opacity="0.8"/></svg>`, noteSvg:`<svg width="16" height="28" viewBox="0 0 24 36"><ellipse cx="12" cy="22" rx="9" ry="7" fill="#fff" stroke="#333" stroke-width="2.5"/></svg>` }
+};
+function buildLearnQuestions() {
+  const seq = ['quarter','half','dottedHalf','whole'];
+  return seq.map((key,i)=>({noteKey:key, groupId:undefined, groupNotes:[key], noteIndex:0, groupLabel:`认识时值 ${i+1} / ${seq.length}`}));
+}
+function buildRandomGroupQuestions() {
+  const pool = ['quarter','half','dottedHalf','whole'];
+  const sizes = [2,3,4,2,3,4];
+  const questions = [];
+  sizes.forEach((size,gi)=>{
+    const shuffled = [...pool].sort(()=>Math.random()-0.5);
+    const group = shuffled.slice(0,size);
+    group.forEach((noteKey,ni)=>{
+      questions.push({noteKey, groupId:gi, groupSize:size, noteIndex:ni, groupNotes:group, groupLabel:`第 ${gi+1}/${sizes.length} 组 · ${size}个音符 · 音符 ${ni+1}/${size}`});
+    });
+  });
+  return questions;
+}
+let beatState = { questions:[], currentIndex:0, tapCount:0, busy:false };
+const beatDisplayArea = document.getElementById('beatDisplayArea');
+const beatBtn = document.getElementById('beatBtn');
+const beatMsg = document.getElementById('beatMsg');
+const beatLevelInfo = document.getElementById('beatLevelInfo');
+function renderBeat() {
+  if (!beatState.questions.length) return;
+  const q = beatState.questions[beatState.currentIndex];
+  const note = beatNotePool[q.noteKey];
+  if (q.groupId !== undefined && q.groupNotes.length > 1) {
+    const rowHtml = q.groupNotes.map((nk,i)=>{
+      const n = beatNotePool[nk];
+      const isCurrent = i === q.noteIndex;
+      return `<div class="beat-item ${isCurrent?'current':''}"><div class="animal-icon">${n.animalSvg}</div><div class="note-icon">${n.noteSvg}</div><div class="beat-label">${isCurrent?'👆 '+n.name:n.name}</div></div>`;
+    }).join('');
+    beatDisplayArea.innerHTML = `<div class="beat-row">${rowHtml}</div>`;
+  } else {
+    beatDisplayArea.innerHTML = `<div class="beat-note"><div class="animal-part">${note.animalSvg}</div><div class="note-part">${note.noteSvg}</div></div>`;
+  }
+  beatLevelInfo.textContent = q.groupLabel;
+  beatMsg.innerHTML = '';
+  beatState.tapCount = 0;
+  beatState.busy = false;
+}
+beatBtn.addEventListener('click', ()=>{
+  if (beatState.busy || !beatState.questions.length) return;
+  const q = beatState.questions[beatState.currentIndex];
+  const note = beatNotePool[q.noteKey];
+  beatState.tapCount++;
+  playBeep(600,0.1);
+  if (beatState.tapCount <= note.taps) speakNumber(beatState.tapCount);
+  if (beatState.tapCount > note.taps) {
+    beatState.busy = true;
+    beatMsg.innerHTML = '❌ 点多了，再试一次 <span class="en">Too many taps, try again</span>';
+    playBeep(200,0.3);
+    setTimeout(()=>renderBeat(),800);
+    return;
+  }
+  if (beatState.tapCount === note.taps) {
+    beatState.busy = true;
+    playBeep(880,0.2);
+    const nextQ = beatState.questions[beatState.currentIndex+1];
+    if (!nextQ) {
+      beatMsg.innerHTML = '🎉 全部完成！<span class="en">All done!</span>';
+      setTimeout(()=>{ beatState.currentIndex=0; renderBeat(); },1500);
+    } else if (q.groupId !== undefined && nextQ.groupId !== q.groupId) {
+      beatMsg.innerHTML = '🎉 本组完成！<span class="en">Group completed!</span>';
+      setTimeout(()=>{ beatState.currentIndex++; renderBeat(); },1000);
+    } else {
+      beatMsg.innerHTML = '✅ 过关！<span class="en">Great!</span>';
+      setTimeout(()=>{ beatState.currentIndex++; renderBeat(); },1000);
+    }
+  }
+});
+function loadBeatStage(stage) {
+  if (stage === 'learn') beatState.questions = buildLearnQuestions();
+  else if (stage === 'random') beatState.questions = buildRandomGroupQuestions();
+  beatState.currentIndex = 0;
+  renderBeat();
+}
+document.querySelectorAll('#beatPanel .stage-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#beatPanel .stage-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadBeatStage(btn.dataset.stage);
+  });
+});
+
+// ========== 我是谁？动物资料 ==========
+const animalData = {
+  cat: { key:'C4', name:'小猫', letter:'C', en:'Cat', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><polygon points="12,12 20,20 8,20" fill="#FF9838" stroke="#2D3A5C" stroke-width="2"/><polygon points="38,12 30,20 42,20" fill="#FF9838" stroke="#2D3A5C" stroke-width="2"/><circle cx="25" cy="28" r="17" fill="#FFB347" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="19" cy="25" rx="3" ry="4" fill="#2D3A5C"/><ellipse cx="31" cy="25" rx="3" ry="4" fill="#2D3A5C"/><circle cx="25" cy="30" r="2" fill="#FF6F91"/><circle cx="14" cy="31" r="3.5" fill="#FF6F91" opacity="0.5"/><circle cx="36" cy="31" r="3.5" fill="#FF6F91" opacity="0.5"/></svg>` },
+  dog: { key:'D', name:'小狗', letter:'D', en:'Dog', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><ellipse cx="12" cy="15" rx="6" ry="9" fill="#8B5E3C" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="38" cy="15" rx="6" ry="9" fill="#8B5E3C" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="28" rx="18" ry="17" fill="#D4A574" stroke="#2D3A5C" stroke-width="2"/><circle cx="19" cy="25" r="3" fill="#2D3A5C"/><circle cx="31" cy="25" r="3" fill="#2D3A5C"/><ellipse cx="25" cy="30" rx="3.5" ry="2.5" fill="#4A3B52"/><ellipse cx="25" cy="37" rx="3" ry="3.5" fill="#FF6F91"/></svg>` },
+  elephant: { key:'E', name:'小象', letter:'E', en:'Elephant', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><ellipse cx="10" cy="22" rx="9" ry="11" fill="#90A4AE" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="10" cy="22" rx="5" ry="7" fill="#CFD8DC"/><ellipse cx="40" cy="22" rx="9" ry="11" fill="#90A4AE" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="40" cy="22" rx="5" ry="7" fill="#CFD8DC"/><circle cx="25" cy="24" r="17" fill="#B0BEC5" stroke="#2D3A5C" stroke-width="2"/><path d="M 22 36 Q 20 48 26 46 Q 32 46 30 38" fill="#B0BEC5" stroke="#2D3A5C" stroke-width="2"/><circle cx="19" cy="21" r="3" fill="#2D3A5C"/><circle cx="31" cy="21" r="3" fill="#2D3A5C"/><circle cx="20" cy="20" r="1.2" fill="#fff"/><circle cx="32" cy="20" r="1.2" fill="#fff"/></svg>` },
+  fox: { key:'F', name:'狐狸', letter:'F', en:'Fox', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><polygon points="6,20 18,8 22,18" fill="#FF6F00" stroke="#2D3A5C" stroke-width="2"/><polygon points="44,20 32,8 28,18" fill="#FF6F00" stroke="#2D3A5C" stroke-width="2"/><circle cx="25" cy="28" r="16" fill="#FF8A65" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="34" rx="8" ry="7" fill="#FFE3E8"/><circle cx="19" cy="24" r="3" fill="#2D3A5C"/><circle cx="31" cy="24" r="3" fill="#2D3A5C"/><circle cx="25" cy="30" r="2" fill="#2D3A5C"/></svg>` },
+  goat: { key:'G', name:'山羊', letter:'G', en:'Goat', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><path d="M 14 14 Q 6 8 12 2 Q 20 4 18 14" fill="#D7CCC8" stroke="#2D3A5C" stroke-width="2"/><path d="M 36 14 Q 44 8 38 2 Q 30 4 32 14" fill="#D7CCC8" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="28" rx="15" ry="17" fill="#F5F5DC" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="19" cy="25" rx="3" ry="3.5" fill="#2D3A5C"/><ellipse cx="31" cy="25" rx="3" ry="3.5" fill="#2D3A5C"/><ellipse cx="25" cy="32" rx="4" ry="2.5" fill="#FFB3C6"/></svg>` },
+  ant: { key:'A', name:'蚂蚁', letter:'A', en:'Ant', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><path d="M 20 12 Q 14 2 8 4" stroke="#2D3A5C" stroke-width="2" fill="none"/><path d="M 30 12 Q 36 2 42 4" stroke="#2D3A5C" stroke-width="2" fill="none"/><circle cx="25" cy="16" r="8" fill="#5D4037" stroke="#2D3A5C" stroke-width="2"/><circle cx="21" cy="14" r="2.5" fill="#fff"/><circle cx="29" cy="14" r="2.5" fill="#fff"/><ellipse cx="25" cy="26" rx="6" ry="4" fill="#5D4037" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="38" rx="10" ry="7" fill="#5D4037" stroke="#2D3A5C" stroke-width="2"/></svg>` },
+  bear: { key:'B', name:'小熊', letter:'B', en:'Bear', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><circle cx="14" cy="14" r="8" fill="#A97142" stroke="#2D3A5C" stroke-width="2"/><circle cx="36" cy="14" r="8" fill="#A97142" stroke="#2D3A5C" stroke-width="2"/><circle cx="25" cy="28" r="17" fill="#A97142" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="33" rx="7" ry="5" fill="#FFE3E8"/><circle cx="19" cy="24" r="3" fill="#2D3A5C"/><circle cx="31" cy="24" r="3" fill="#2D3A5C"/><ellipse cx="25" cy="30" rx="3" ry="2.5" fill="#2D3A5C"/></svg>` }
+};
+
+// ========== 多首儿歌 ==========
+const animalOfNote = { C4:'cat', D:'dog', E:'elephant', F:'fox', G:'goat', A:'ant', B:'bear' };
+function noteToTask(n) { return { animalKey: animalOfNote[n], key: n }; }
+const songList = [
+  { name:'小星星', enName:'Twinkle Twinkle', notes:['C4','C4','G','G','A','A','G','F','F','E','E','D','D','C4'] },
+  { name:'玛莉有只小羊羔', enName:'Mary Had a Little Lamb', notes:['E','D','C4','D','E','E','E','D','D','D','E','G','G'] },
+  { name:'欢乐颂', enName:'Ode to Joy', notes:['E','E','F','G','G','F','E','D','C4','C4','D','E','E','D','D'] },
+  { name:'粉刷匠', enName:'The Painter', notes:['G','E','G','E','G','E','C4','D','F','E','D','G','G','E','G','E','G','E','C4','D','F','E','D','C4'] },
+  { name:'两只老虎', enName:'Two Tigers', notes:['C4','D','E','C4','C4','D','E','C4','E','F','G','E','F','G','G','A','G','F','E','C4','G','A','G','F','E','C4','C4','G','C4','C4','G','C4'] },
+  { name:'铃儿响叮当', enName:'Jingle Bells', notes:['E','E','E','E','E','E','E','G','C4','D','E','F','F','F','F','F','E','E','E','E','D','D','E','D','G'] },
+  { name:'新年好', enName:'Happy New Year', notes:['C4','C4','C4','G','E','E','E','C4','C4','E','G','G','F','E','D','D','E','F','E','D','E','C4','C4','E','D','G','C4'] }
+];
+songList.forEach(song=>{ song.segments=[]; for(let i=0;i<song.notes.length;i+=4) song.segments.push(song.notes.slice(i,i+4)); });
+
+// ========== 我是谁？逻辑 ==========
+let currentKbLevel = 1, selectedAnimal = null, isBusy = false;
+let currentSongIndex = 0, currentSegmentIndex = 0, taskIndex = 0;
+const taskPool = [
+  { animalKey:'cat', key:'C4' }, { animalKey:'dog', key:'D' }, { animalKey:'elephant', key:'E' },
+  { animalKey:'fox', key:'F' }, { animalKey:'goat', key:'G' }, { animalKey:'ant', key:'A' }, { animalKey:'bear', key:'B' }
+];
+function shuffleTasks() { const arr=[...taskPool]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+let currentTasks = shuffleTasks();
+
+const taskBox = document.getElementById('taskBox');
+const animalBar = document.getElementById('animalBar');
+const successMsg = document.getElementById('successMsg');
+const progress = document.getElementById('progress');
+const melodyRow = document.getElementById('melodyRow');
+const songSelect = document.getElementById('songSelect');
+const keys = document.querySelectorAll('.key-white');
+
+function buildAnimalBar(container) {
+  container.innerHTML = '';
+  Object.entries(animalData).forEach(([k,data])=>{
+    const item = document.createElement('div');
+    item.className = 'animal-item';
+    item.dataset.animal = k;
+    item.innerHTML = data.svg + `<span class="animal-name">${data.name}</span><span class="animal-key">${data.en}</span>`;
+    item.addEventListener('click',()=>{
+      if (isBusy) return;
+      document.querySelectorAll(`#${container.id} .animal-item`).forEach(el=>el.classList.remove('selected'));
+      item.classList.add('selected');
+      selectedAnimal = k;
+      successMsg.innerHTML = `选择了 ${data.name}（${data.en}） <span class="en">Selected ${data.en}</span>`;
+    });
+    item.addEventListener('pointerdown', (e) => { onAnimalPointerDown(k, e); });
+    container.appendChild(item);
+  });
+}
+
+function highlightKey(keyName) {
+  keys.forEach(k=>{ k.setAttribute('fill','#fff'); k.classList.remove('correct','wrong','shake'); });
+  if (!keyName) return;
+  const target = document.querySelector(`.key-white[data-key="${keyName}"]`);
+  if (target) target.setAttribute('fill','#FFD166');
+}
+
+function renderTask() {
+  const task = currentTasks[taskIndex];
+  const a = animalData[task.animalKey];
+  const keyName = task.key === 'C4' ? 'C (中央C)' : task.key;
+  let zhHtml, enText;
+  if (currentKbLevel === 1) {
+    zhHtml = `<span>记住：</span><span class="highlight">${a.name} (${a.en})</span><span>= ${keyName}键</span>`;
+    enText = `Remember: ${a.en} = ${task.key === 'C4' ? 'C (Middle C)' : task.key} key`;
+    progress.innerHTML = `第 ${taskIndex+1} / ${currentTasks.length} · 认识音名 <span class="en">Question ${taskIndex+1} / ${currentTasks.length}</span>`;
+  } else {
+    zhHtml = `<span>把</span><span class="highlight">${a.name} ${a.en}</span><span>送到</span><span class="highlight">${keyName}</span><span>键上</span>`;
+    enText = `Put ${a.en} on ${task.key === 'C4' ? 'C' : task.key} key`;
+    progress.innerHTML = `第 ${taskIndex+1} / ${currentTasks.length} · 帮我找位置 <span class="en">Question ${taskIndex+1} / ${currentTasks.length}</span>`;
+  }
+  taskBox.innerHTML = `${zhHtml}<span class="en" style="width:100%;">${enText}</span>`;
+  successMsg.innerHTML = '';
+  selectedAnimal = null;
+  isBusy = false;
+  document.querySelectorAll('.animal-item').forEach(el=>el.classList.remove('selected'));
+  highlightKey(null);
+}
+
+function getCurrentSegmentTasks() {
+  const song = songList[currentSongIndex];
+  return song.segments[currentSegmentIndex].map(noteToTask);
+}
+
+function renderMelody() {
+  const tasks = getCurrentSegmentTasks();
+  const song = songList[currentSongIndex];
+  melodyRow.innerHTML = '';
+  tasks.forEach((note,index)=>{
+    const div = document.createElement('div');
+    div.className = 'melody-note' + (index===taskIndex?' current':(index<taskIndex?' done':''));
+    div.textContent = note.key === 'C4' ? 'C' : note.key;
+    melodyRow.appendChild(div);
+  });
+  const currentTask = tasks[taskIndex];
+  const a = animalData[currentTask.animalKey];
+  const segmentLabel = `第 ${currentSegmentIndex+1}/${song.segments.length} 段`;
+  const keyLabel = currentTask.key === 'C4' ? 'C' : currentTask.key;
+  taskBox.innerHTML = `<span>【${song.name}】${segmentLabel}，把</span><span class="highlight">${a.name} (${a.en})</span><span>放到亮起的琴键上</span><span class="en" style="width:100%;">Song: ${song.enName} · Put ${a.en} on ${keyLabel} key</span>`;
+  progress.innerHTML = `第 ${taskIndex+1} / ${tasks.length} 个音 · ${segmentLabel} <span class="en">Note ${taskIndex+1} / ${tasks.length} · ${song.enName}</span>`;
+  highlightKey(currentTask.key);
+  playNote(currentTask.key, 0.3);
+  successMsg.innerHTML = '';
+  selectedAnimal = null;
+  isBusy = false;
+  document.querySelectorAll('.animal-item').forEach(el=>el.classList.remove('selected'));
+}
+
+function playFullMelody() {
+  const song = songList[currentSongIndex];
+  const allTasks = song.notes.map(noteToTask);
+  isBusy = true;
+  successMsg.innerHTML = `🎉 太棒了！听一遍《${song.name}》～ <span class="en">Great! Listen to ${song.enName}</span>`;
+  const beatMs = 450;
+  let delay = 0;
+  allTasks.forEach((note)=>{
+    setTimeout(()=>{
+      highlightKey(note.key);
+      playNote(note.key, 0.25);
+    }, delay);
+    delay += beatMs;
+  });
+  setTimeout(()=>{
+    currentSongIndex = (currentSongIndex+1) % songList.length;
+    currentSegmentIndex = 0;
+    taskIndex = 0;
+    updateSongButtons();
+    successMsg.innerHTML = `⭐ 进入下一首：${songList[currentSongIndex].name} <span class="en">Next: ${songList[currentSongIndex].enName}</span>`;
+    renderMelody();
+  }, delay+800);
+}
+
+function handlePlace(animalKey, keyElement) {
+  if (isBusy) return;
+  let currentTask;
+  if (currentKbLevel === 3) {
+    const tasks = getCurrentSegmentTasks();
+    currentTask = tasks[taskIndex];
+  } else {
+    currentTask = currentTasks[taskIndex];
+  }
+  const a = animalData[animalKey];
+  const target = animalData[currentTask.animalKey];
+  if (animalKey !== currentTask.animalKey) {
+    successMsg.innerHTML = `不是${a.name}哦，要找${target.name} <span class="en">Not ${a.en}, find ${target.en}</span>`;
+    keyElement.classList.add('shake');
+    playBeep(200,0.25);
+    setTimeout(()=>keyElement.classList.remove('shake'),400);
+    return;
+  }
+  if (keyElement.dataset.key === currentTask.key) {
+    isBusy = true;
+    keyElement.classList.add('correct');
+    keyElement.setAttribute('fill','#7ED9A8');
+    playBeep(880,0.15); setTimeout(()=>playBeep(1100,0.15),200);
+    successMsg.innerHTML = `✅ 太棒了！<span class="en">Great!</span>`;
+    if (currentKbLevel === 3) playNote(currentTask.key, 0.3);
+    setTimeout(()=>{
+      taskIndex++;
+      if (currentKbLevel === 3) {
+        const tasks = getCurrentSegmentTasks();
+        if (taskIndex >= tasks.length) {
+          const song = songList[currentSongIndex];
+          if (currentSegmentIndex+1 < song.segments.length) {
+            currentSegmentIndex++; taskIndex=0;
+            successMsg.innerHTML = `✅ 本段完成！进入下一段！<span class="en">Segment done! Next segment!</span>`;
+            renderMelody();
+          } else {
+            playFullMelody();
+          }
+        } else {
+          renderMelody();
+        }
+      } else {
+        if (taskIndex >= currentTasks.length) {
+          taskIndex = 0;
+          if (currentKbLevel === 1) {
+            successMsg.innerHTML = `✅ 认识音名完成！开始帮我找位置吧！<span class="en">Learned! Find the position!</span>`;
+            switchKbLevel(2);
+            return;
+          } else {
+            currentTasks = shuffleTasks();
+            taskIndex = 0;
+            successMsg.innerHTML = `🎉 全部完成！再来一轮！<span class="en">All done! Another round!</span>`;
+          }
+        }
+        renderTask();
+      }
+    }, 1000);
+  } else {
+    keyElement.classList.add('wrong','shake');
+    keyElement.setAttribute('fill','#FFB3B3');
+    playBeep(200,0.25);
+    successMsg.innerHTML = `这个琴键不对哦，再试试～<span class="en">Wrong key, try again</span>`;
+    setTimeout(()=>{
+      keyElement.classList.remove('shake','wrong');
+      keyElement.setAttribute('fill','#fff');
+      successMsg.innerHTML = '';
+    },500);
+  }
+}
+
+function updateSongButtons() {
+  const btns = document.querySelectorAll('.song-btn');
+  btns.forEach((btn,i)=>btn.classList.toggle('active', i===currentSongIndex));
+}
+function buildSongSelect() {
+  songSelect.innerHTML = '';
+  songList.forEach((song,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'song-btn' + (i===currentSongIndex?' active':'');
+    btn.innerHTML = song.name + `<span class="en">${song.enName}</span>`;
+    btn.dataset.index = i;
+    btn.addEventListener('click',()=>{
+      if (isBusy) return;
+      currentSongIndex = i;
+      currentSegmentIndex = 0;
+      taskIndex = 0;
+      updateSongButtons();
+      renderMelody();
+    });
+    songSelect.appendChild(btn);
+  });
+}
+
+function switchKbLevel(level) {
+  currentKbLevel = level;
+  document.querySelectorAll('.level-tab').forEach(btn=>btn.classList.toggle('active', btn.dataset.kbLevel == level));
+  isBusy = false;
+  taskIndex = 0;
+  selectedAnimal = null;
+  if (level === 1) {
+    currentTasks = [...taskPool];
+    songSelect.style.display = 'none';
+    melodyRow.style.display = 'none';
+    buildAnimalBar(animalBar);
+    renderTask();
+  } else if (level === 2) {
+    currentTasks = shuffleTasks();
+    songSelect.style.display = 'none';
+    melodyRow.style.display = 'none';
+    buildAnimalBar(animalBar);
+    renderTask();
+  } else if (level === 3) {
+    songSelect.style.display = 'flex';
+    melodyRow.style.display = 'flex';
+    buildSongSelect();
+    buildAnimalBar(animalBar);
+    currentSegmentIndex = 0;
+    taskIndex = 0;
+    renderMelody();
+  }
+}
+
+document.querySelectorAll('.level-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    switchKbLevel(parseInt(btn.dataset.kbLevel));
+  });
+});
+
+keys.forEach(key=>{
+  key.addEventListener('click',()=>{
+    if (isBusy) return;
+    if (!selectedAnimal) {
+      successMsg.innerHTML = `请先选一只小动物 <span class="en">Please choose an animal first</span>`;
+      key.classList.add('shake');
+      setTimeout(()=>key.classList.remove('shake'),400);
+      return;
+    }
+    handlePlace(selectedAnimal, key);
+  });
+});
+
+// ========== 触摸拖拽（手机/iPad） ==========
+let touchDragAnimal = null, touchDragClone = null, touchDragStartX = 0, touchDragStartY = 0, touchDragActive = false;
+function keyAtPoint(x, y) {
+  for (const k of keys) {
+    const r = k.getBoundingClientRect();
+    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return k;
+  }
+  return null;
+}
+function onAnimalPointerDown(animalKey, e) {
+  if (isBusy) return;
+  touchDragAnimal = animalKey;
+  touchDragStartX = e.clientX;
+  touchDragStartY = e.clientY;
+  touchDragActive = false;
+}
+function onDocPointerMove(e) {
+  if (!touchDragAnimal) return;
+  if (!touchDragActive) {
+    if (Math.abs(e.clientX - touchDragStartX) < 10 && Math.abs(e.clientY - touchDragStartY) < 10) return;
+    touchDragActive = true;
+    touchDragClone = document.createElement('div');
+    touchDragClone.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-50%);';
+    touchDragClone.innerHTML = animalData[touchDragAnimal].svg;
+    document.body.appendChild(touchDragClone);
+    document.querySelectorAll('.animal-item').forEach(el => el.classList.toggle('dragging', el.dataset.animal === touchDragAnimal));
+  }
+  touchDragClone.style.left = e.clientX + 'px';
+  touchDragClone.style.top = e.clientY + 'px';
+  e.preventDefault();
+}
+function onDocPointerUp(e) {
+  if (!touchDragAnimal) return;
+  if (touchDragActive && touchDragClone) {
+    const keyEl = keyAtPoint(e.clientX, e.clientY);
+    document.body.removeChild(touchDragClone);
+    touchDragClone = null;
+    document.querySelectorAll('.animal-item').forEach(el => el.classList.remove('dragging'));
+    if (keyEl) handlePlace(touchDragAnimal, keyEl);
+  }
+  touchDragAnimal = null;
+  touchDragActive = false;
+}
+document.addEventListener('pointermove', onDocPointerMove);
+document.addEventListener('pointerup', onDocPointerUp);
+
+// 标签切换
+const tabBeat = document.getElementById('tabBeat');
+const tabKeyboard = document.getElementById('tabKeyboard');
+const panelBeat = document.getElementById('beatPanel');
+const panelKeyboard = document.getElementById('keyboardPanel');
+tabBeat.addEventListener('click',()=>{
+  tabBeat.classList.add('active'); tabKeyboard.classList.remove('active');
+  panelBeat.classList.add('active'); panelKeyboard.classList.remove('active');
+});
+tabKeyboard.addEventListener('click',()=>{
+  tabKeyboard.classList.add('active'); tabBeat.classList.remove('active');
+  panelKeyboard.classList.add('active'); panelBeat.classList.remove('active');
+});
+
+// 初始化
+loadBeatStage('learn');
+switchKbLevel(1);
+</script>
+</body>
+</html>
