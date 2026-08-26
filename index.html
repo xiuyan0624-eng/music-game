@@ -125,12 +125,29 @@
     gap: 6px; margin-bottom: 10px; padding: 8px;
     background: #FFF0E8; border-radius: 16px;
   }
+  .drag-guide {
+    font-size: 0.85rem; font-weight: 800; color: #FF6F91;
+    margin: 0 0 8px; min-height: 22px;
+  }
   .animal-item {
     background: #fff; border: 2px solid transparent; border-radius: 12px;
     padding: 4px 6px; cursor: grab; transition: 0.2s;
     display: flex; flex-direction: column; align-items: center;
     min-width: 50px; user-select: none; -webkit-user-select: none;
-    touch-action: none;
+    touch-action: none; position: relative;
+  }
+  .animal-item.draggable-hint {
+    animation: animalFloat 1.4s ease-in-out infinite;
+    border-color: #FFD166;
+  }
+  .animal-item .drag-badge {
+    position: absolute; top: -6px; right: -4px;
+    background: #FF6F91; color: #fff; font-size: 0.55rem; font-weight: 800;
+    border-radius: 8px; padding: 1px 4px; line-height: 1.2;
+  }
+  @keyframes animalFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
   }
   .animal-item:active { cursor: grabbing; }
   .animal-item:hover { border-color: #FFD166; transform: translateY(-2px); }
@@ -138,6 +155,20 @@
   .animal-item.dragging { opacity: 0.4; }
   .animal-item .animal-name { font-size: 0.7rem; font-weight: 700; color: #4A3B52; }
   .animal-item .animal-key { font-size: 0.6rem; color: #999; font-weight: 700; }
+  .key-drop-feedback {
+    position: absolute; pointer-events: none; z-index: 20;
+    animation: dropPop 0.7s ease-out forwards;
+  }
+  @keyframes dropPop {
+    0% { opacity: 0; transform: translate(-50%, -40%) scale(0.5); }
+    30% { opacity: 1; transform: translate(-50%, -70%) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, -110%) scale(1); }
+  }
+  .drag-demo-ghost {
+    position: fixed; z-index: 9998; pointer-events: none;
+    transition: left 0.9s ease-in-out, top 0.9s ease-in-out, opacity 0.3s;
+    opacity: 0.85;
+  }
 
   .melody-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
   .melody-note {
@@ -241,6 +272,7 @@
       <div class="song-select" id="songSelect" style="display:none;"></div>
       <div class="progress" id="progress"></div>
       <div class="task-box" id="taskBox"></div>
+      <div class="drag-guide" id="dragGuide"></div>
       <div class="melody-row" id="melodyRow" style="display:none;"></div>
       <div class="animal-bar" id="animalBar"></div>
     </div>
@@ -266,7 +298,7 @@
       <text x="420" y="175" font-size="16" fill="#888" text-anchor="middle">A</text>
       <text x="495" y="175" font-size="16" fill="#888" text-anchor="middle">B</text>
     </svg>
-    <div class="keyboard-tip">直接拖拽小动物到琴键上，或先点选再点琴键 <span class="en">Drag the animal to the key, or select it first</span></div>
+    <div class="keyboard-tip" id="keyboardTip">点选小动物，再点对应琴键 <span class="en">Select an animal, then tap its key</span></div>
     <div class="success-msg" id="successMsg"></div>
   </div>
 </div>
@@ -427,19 +459,63 @@ const animalData = {
 const animalOfNote = { C4:'cat', D:'dog', E:'elephant', F:'fox', G:'goat', A:'ant', B:'bear' };
 function noteToTask(n) { return { animalKey: animalOfNote[n], key: n }; }
 const songList = [
-  { name:'小星星', enName:'Twinkle Twinkle', notes:['C4','C4','G','G','A','A','G','F','F','E','E','D','D','C4'] },
-  { name:'玛莉有只小羊羔', enName:'Mary Had a Little Lamb', notes:['E','D','C4','D','E','E','E','D','D','D','E','G','G'] },
-  { name:'欢乐颂', enName:'Ode to Joy', notes:['E','E','F','G','G','F','E','D','C4','C4','D','E','E','D','D'] },
-  { name:'粉刷匠', enName:'The Painter', notes:['G','E','G','E','G','E','C4','D','F','E','D','G','G','E','G','E','G','E','C4','D','F','E','D','C4'] },
-  { name:'两只老虎', enName:'Two Tigers', notes:['C4','D','E','C4','C4','D','E','C4','E','F','G','E','F','G','G','A','G','F','E','C4','G','A','G','F','E','C4','C4','G','C4','C4','G','C4'] },
-  { name:'铃儿响叮当', enName:'Jingle Bells', notes:['E','E','E','E','E','E','E','G','C4','D','E','F','F','F','F','F','E','E','E','E','D','D','E','D','G'] },
-  { name:'新年好', enName:'Happy New Year', notes:['C4','C4','C4','G','E','E','E','C4','C4','E','G','G','F','E','D','D','E','F','E','D','E','C4','C4','E','D','G','C4'] }
+  {
+    name: '小星星', enName: 'Twinkle Twinkle',
+    notes: ['C4','C4','G','G','A','A','G','F','F','E','E','D','D','C4'],
+    durationBeats: [1,1,1,1,1,1,2, 1,1,1,1,1,1,2]
+  },
+  {
+    name: '玛莉有只小羊羔', enName: 'Mary Had a Little Lamb',
+    notes: ['E','D','C4','D','E','E','E','D','D','D','E','G','G'],
+    durationBeats: [1,1,1,1, 1,1,2, 1,1,2, 1,1,2]
+  },
+  {
+    name: '欢乐颂', enName: 'Ode to Joy',
+    notes: ['E','E','F','G','G','F','E','D','C4','C4','D','E','E','D','D'],
+    durationBeats: [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,2]
+  },
+  {
+    name: '粉刷匠', enName: 'The Painter',
+    notes: ['G','E','G','E','G','E','C4','D','F','E','D','G','G','E','G','E','G','E','C4','D','F','E','D','C4'],
+    durationBeats: [1,1,1,1,1,1,2, 1,1,1,1,2, 1,1,1,1,1,1,2, 1,1,1,1,2]
+  },
+  {
+    name: '两只老虎', enName: 'Two Tigers',
+    notes: ['C4','D','E','C4','C4','D','E','C4','E','F','G','E','F','G','G','A','G','F','E','C4','G','A','G','F','E','C4','C4','G','C4','C4','G','C4'],
+    durationBeats: [1,1,1,1, 1,1,1,1, 1,1,2, 1,1,2, 1,1,1,1,1,1, 1,1,1,1,1,1, 1,1,2, 1,1,2]
+  },
+  {
+    name: '铃儿响叮当', enName: 'Jingle Bells',
+    notes: ['E','E','E','E','E','E','E','G','C4','D','E','F','F','F','F','F','E','E','E','E','D','D','E','D','G'],
+    durationBeats: [1,1,2, 1,1,2, 1,1,1,1,2, 1,1,1,1,1, 1,1,1,1, 1,1,1,1,2]
+  },
+  {
+    name: '新年好', enName: 'Happy New Year',
+    notes: ['C4','C4','C4','G','E','E','E','C4','C4','E','G','G','F','E','D','D','E','F','E','D','E','C4','C4','E','D','G','C4'],
+    durationBeats: [1,1,2,2, 1,1,2,2, 1,1,2,2, 1,1,2, 1,1,2, 1,1,1,1, 1,1,1,1,4]
+  }
 ];
-songList.forEach(song=>{ song.segments=[]; for(let i=0;i<song.notes.length;i+=4) song.segments.push(song.notes.slice(i,i+4)); });
+songList.forEach(song => {
+  song.segments = [];
+  for (let i = 0; i < song.notes.length; i += 4) song.segments.push(song.notes.slice(i, i + 4));
+});
 
 // ========== 我是谁？逻辑 ==========
 let currentKbLevel = 1, selectedAnimal = null, isBusy = false;
 let currentSongIndex = 0, currentSegmentIndex = 0, taskIndex = 0;
+let hasShownDragDemo = false;
+let kbTimers = [];
+let isPlayingFullMelody = false;
+function kbSetTimeout(fn, ms) {
+  const id = setTimeout(fn, ms);
+  kbTimers.push(id);
+  return id;
+}
+function clearKbTimers() {
+  kbTimers.forEach(clearTimeout);
+  kbTimers = [];
+}
+const MELODY_BEAT_MS = 480;
 const taskPool = [
   { animalKey:'cat', key:'C4' }, { animalKey:'dog', key:'D' }, { animalKey:'elephant', key:'E' },
   { animalKey:'fox', key:'F' }, { animalKey:'goat', key:'G' }, { animalKey:'ant', key:'A' }, { animalKey:'bear', key:'B' }
@@ -453,32 +529,90 @@ const successMsg = document.getElementById('successMsg');
 const progress = document.getElementById('progress');
 const melodyRow = document.getElementById('melodyRow');
 const songSelect = document.getElementById('songSelect');
+const dragGuide = document.getElementById('dragGuide');
+const keyboardTip = document.getElementById('keyboardTip');
 const keys = document.querySelectorAll('.key-white');
+
+function updateDragGuides() {
+  if (currentKbLevel === 1) {
+    dragGuide.innerHTML = '👆 先点小动物，再点琴键学习音名 <span class="en">Tap animal, then tap the key</span>';
+    keyboardTip.innerHTML = '点选小动物，再点对应琴键 <span class="en">Select an animal, then tap its key</span>';
+  } else if (currentKbLevel === 2) {
+    dragGuide.innerHTML = '👆➡️🎹 拖动小动物到琴键上 <span class="en">Drag the animal onto the piano key</span>';
+    keyboardTip.innerHTML = '把小动物拖到它的琴键上（也可先点选再点琴键） <span class="en">Drag the animal onto its piano key</span>';
+  } else {
+    dragGuide.innerHTML = '👆➡️🎹 拖动小动物到琴键上 <span class="en">Drag the animal onto the piano key</span>';
+    keyboardTip.innerHTML = '把小动物拖到亮起的琴键上（也可先点选再点琴键） <span class="en">Drag onto the lit key</span>';
+  }
+}
 
 function buildAnimalBar(container) {
   container.innerHTML = '';
-  Object.entries(animalData).forEach(([k,data])=>{
+  const showDragHint = currentKbLevel >= 2;
+  Object.entries(animalData).forEach(([k, data]) => {
     const item = document.createElement('div');
-    item.className = 'animal-item';
+    item.className = 'animal-item' + (showDragHint ? ' draggable-hint' : '');
     item.dataset.animal = k;
-    item.innerHTML = data.svg + `<span class="animal-name">${data.name}</span><span class="animal-key">${data.en}</span>`;
-    item.addEventListener('click',()=>{
+    const badge = showDragHint ? '<span class="drag-badge">拖</span>' : '';
+    item.innerHTML = badge + data.svg + `<span class="animal-name">${data.name}</span><span class="animal-key">${data.en}</span>`;
+    item.addEventListener('click', () => {
       if (isBusy) return;
-      document.querySelectorAll(`#${container.id} .animal-item`).forEach(el=>el.classList.remove('selected'));
+      document.querySelectorAll(`#${container.id} .animal-item`).forEach(el => el.classList.remove('selected'));
       item.classList.add('selected');
       selectedAnimal = k;
-      successMsg.innerHTML = `选择了 ${data.name}（${data.en}） <span class="en">Selected ${data.en}</span>`;
+      if (currentKbLevel >= 2) {
+        successMsg.innerHTML = `已选 ${data.name}，请拖到琴键上（或再点琴键） <span class="en">Selected ${data.en} — drag onto a key</span>`;
+      } else {
+        successMsg.innerHTML = `选择了 ${data.name}（${data.en}） <span class="en">Selected ${data.en}</span>`;
+      }
     });
     item.addEventListener('pointerdown', (e) => { onAnimalPointerDown(k, e); });
     container.appendChild(item);
   });
 }
 
+function showDropFeedback(animalKey, keyElement) {
+  const rect = keyElement.getBoundingClientRect();
+  const feedback = document.createElement('div');
+  feedback.className = 'key-drop-feedback';
+  feedback.innerHTML = animalData[animalKey].svg;
+  feedback.style.left = (rect.left + rect.width / 2) + 'px';
+  feedback.style.top = (rect.top + rect.height * 0.35) + 'px';
+  document.body.appendChild(feedback);
+  setTimeout(() => feedback.remove(), 700);
+}
+
+function playDragDemo() {
+  if (hasShownDragDemo || currentKbLevel < 2) return;
+  if (!panelKeyboard.classList.contains('active')) return; // 面板隐藏时不消耗演示机会
+  hasShownDragDemo = true;
+  const firstAnimal = document.querySelector('.animal-item');
+  const targetKey = document.querySelector('.key-white');
+  if (!firstAnimal || !targetKey) return;
+  const from = firstAnimal.getBoundingClientRect();
+  const to = targetKey.getBoundingClientRect();
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-demo-ghost';
+  ghost.innerHTML = animalData[firstAnimal.dataset.animal].svg;
+  ghost.style.left = (from.left + from.width / 2) + 'px';
+  ghost.style.top = (from.top + from.height / 2) + 'px';
+  ghost.style.transform = 'translate(-50%, -50%)';
+  document.body.appendChild(ghost);
+  requestAnimationFrame(() => {
+    ghost.style.left = (to.left + to.width / 2) + 'px';
+    ghost.style.top = (to.top + to.height / 2) + 'px';
+  });
+  setTimeout(() => {
+    ghost.style.opacity = '0';
+    setTimeout(() => ghost.remove(), 300);
+  }, 1000);
+}
+
 function highlightKey(keyName) {
-  keys.forEach(k=>{ k.setAttribute('fill','#fff'); k.classList.remove('correct','wrong','shake'); });
+  keys.forEach(k => { k.setAttribute('fill', '#fff'); k.classList.remove('correct', 'wrong', 'shake'); });
   if (!keyName) return;
   const target = document.querySelector(`.key-white[data-key="${keyName}"]`);
-  if (target) target.setAttribute('fill','#FFD166');
+  if (target) target.setAttribute('fill', '#FFD166');
 }
 
 function renderTask() {
@@ -489,17 +623,18 @@ function renderTask() {
   if (currentKbLevel === 1) {
     zhHtml = `<span>记住：</span><span class="highlight">${a.name} (${a.en})</span><span>= ${keyName}键</span>`;
     enText = `Remember: ${a.en} = ${task.key === 'C4' ? 'C (Middle C)' : task.key} key`;
-    progress.innerHTML = `第 ${taskIndex+1} / ${currentTasks.length} · 认识音名 <span class="en">Question ${taskIndex+1} / ${currentTasks.length}</span>`;
+    progress.innerHTML = `第 ${taskIndex + 1} / ${currentTasks.length} · 认识音名 <span class="en">Question ${taskIndex + 1} / ${currentTasks.length}</span>`;
   } else {
-    zhHtml = `<span>把</span><span class="highlight">${a.name} ${a.en}</span><span>送到</span><span class="highlight">${keyName}</span><span>键上</span>`;
-    enText = `Put ${a.en} on ${task.key === 'C4' ? 'C' : task.key} key`;
-    progress.innerHTML = `第 ${taskIndex+1} / ${currentTasks.length} · 帮我找位置 <span class="en">Question ${taskIndex+1} / ${currentTasks.length}</span>`;
+    zhHtml = `<span>拖动</span><span class="highlight">${a.name} ${a.en}</span><span>到</span><span class="highlight">${keyName}</span><span>键上</span>`;
+    enText = `Drag ${a.en} onto ${task.key === 'C4' ? 'C' : task.key} key`;
+    progress.innerHTML = `第 ${taskIndex + 1} / ${currentTasks.length} · 帮我找位置 <span class="en">Question ${taskIndex + 1} / ${currentTasks.length}</span>`;
   }
   taskBox.innerHTML = `${zhHtml}<span class="en" style="width:100%;">${enText}</span>`;
+  updateDragGuides();
   successMsg.innerHTML = '';
   selectedAnimal = null;
   isBusy = false;
-  document.querySelectorAll('.animal-item').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.animal-item').forEach(el => el.classList.remove('selected'));
   highlightKey(null);
 }
 
@@ -508,52 +643,56 @@ function getCurrentSegmentTasks() {
   return song.segments[currentSegmentIndex].map(noteToTask);
 }
 
-function renderMelody() {
+function renderMelody(silent) {
   const tasks = getCurrentSegmentTasks();
   const song = songList[currentSongIndex];
   melodyRow.innerHTML = '';
-  tasks.forEach((note,index)=>{
+  tasks.forEach((note, index) => {
     const div = document.createElement('div');
-    div.className = 'melody-note' + (index===taskIndex?' current':(index<taskIndex?' done':''));
+    div.className = 'melody-note' + (index === taskIndex ? ' current' : (index < taskIndex ? ' done' : ''));
     div.textContent = note.key === 'C4' ? 'C' : note.key;
     melodyRow.appendChild(div);
   });
   const currentTask = tasks[taskIndex];
   const a = animalData[currentTask.animalKey];
-  const segmentLabel = `第 ${currentSegmentIndex+1}/${song.segments.length} 段`;
+  const segmentLabel = `第 ${currentSegmentIndex + 1}/${song.segments.length} 段`;
   const keyLabel = currentTask.key === 'C4' ? 'C' : currentTask.key;
-  taskBox.innerHTML = `<span>【${song.name}】${segmentLabel}，把</span><span class="highlight">${a.name} (${a.en})</span><span>放到亮起的琴键上</span><span class="en" style="width:100%;">Song: ${song.enName} · Put ${a.en} on ${keyLabel} key</span>`;
-  progress.innerHTML = `第 ${taskIndex+1} / ${tasks.length} 个音 · ${segmentLabel} <span class="en">Note ${taskIndex+1} / ${tasks.length} · ${song.enName}</span>`;
+  taskBox.innerHTML = `<span>【${song.name}】${segmentLabel}，拖动</span><span class="highlight">${a.name} (${a.en})</span><span>到亮起的琴键上</span><span class="en" style="width:100%;">Song: ${song.enName} · Drag ${a.en} onto ${keyLabel}</span>`;
+  progress.innerHTML = `第 ${taskIndex + 1} / ${tasks.length} 个音 · ${segmentLabel} <span class="en">Note ${taskIndex + 1} / ${tasks.length} · ${song.enName}</span>`;
+  updateDragGuides();
   highlightKey(currentTask.key);
-  playNote(currentTask.key, 0.3);
+  if (!silent && panelKeyboard.classList.contains('active')) playNote(currentTask.key, 0.3);
   successMsg.innerHTML = '';
   selectedAnimal = null;
   isBusy = false;
-  document.querySelectorAll('.animal-item').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('.animal-item').forEach(el => el.classList.remove('selected'));
 }
 
 function playFullMelody() {
   const song = songList[currentSongIndex];
-  const allTasks = song.notes.map(noteToTask);
+  const durations = song.durationBeats || song.notes.map(() => 1);
   isBusy = true;
+  isPlayingFullMelody = true;
   successMsg.innerHTML = `🎉 太棒了！听一遍《${song.name}》～ <span class="en">Great! Listen to ${song.enName}</span>`;
-  const beatMs = 450;
   let delay = 0;
-  allTasks.forEach((note)=>{
-    setTimeout(()=>{
-      highlightKey(note.key);
-      playNote(note.key, 0.25);
+  song.notes.forEach((noteName, i) => {
+    const beats = durations[i] || 1;
+    const noteDurSec = Math.min(2.0, (beats * MELODY_BEAT_MS) / 1000 * 0.85);
+    kbSetTimeout(() => {
+      highlightKey(noteName);
+      playNote(noteName, noteDurSec);
     }, delay);
-    delay += beatMs;
+    delay += beats * MELODY_BEAT_MS;
   });
-  setTimeout(()=>{
-    currentSongIndex = (currentSongIndex+1) % songList.length;
+  kbSetTimeout(() => {
+    isPlayingFullMelody = false;
+    currentSongIndex = (currentSongIndex + 1) % songList.length;
     currentSegmentIndex = 0;
     taskIndex = 0;
     updateSongButtons();
     successMsg.innerHTML = `⭐ 进入下一首：${songList[currentSongIndex].name} <span class="en">Next: ${songList[currentSongIndex].enName}</span>`;
     renderMelody();
-  }, delay+800);
+  }, delay + 800);
 }
 
 function handlePlace(animalKey, keyElement) {
@@ -567,32 +706,41 @@ function handlePlace(animalKey, keyElement) {
   }
   const a = animalData[animalKey];
   const target = animalData[currentTask.animalKey];
+  const keyLabel = currentTask.key === 'C4' ? 'C' : currentTask.key;
   if (animalKey !== currentTask.animalKey) {
-    successMsg.innerHTML = `不是${a.name}哦，要找${target.name} <span class="en">Not ${a.en}, find ${target.en}</span>`;
+    successMsg.innerHTML = `❌ 动物不对：不是${a.name}，要找${target.name} <span class="en">Wrong animal: find ${target.en}</span>`;
     keyElement.classList.add('shake');
-    playBeep(200,0.25);
-    setTimeout(()=>keyElement.classList.remove('shake'),400);
+    playBeep(200, 0.25);
+    kbSetTimeout(() => keyElement.classList.remove('shake'), 400);
     return;
   }
   if (keyElement.dataset.key === currentTask.key) {
     isBusy = true;
     keyElement.classList.add('correct');
-    keyElement.setAttribute('fill','#7ED9A8');
-    playBeep(880,0.15); setTimeout(()=>playBeep(1100,0.15),200);
-    successMsg.innerHTML = `✅ 太棒了！<span class="en">Great!</span>`;
-    if (currentKbLevel === 3) playNote(currentTask.key, 0.3);
-    setTimeout(()=>{
+    keyElement.setAttribute('fill', '#7ED9A8');
+    showDropFeedback(animalKey, keyElement);
+    playBeep(880, 0.15); kbSetTimeout(() => playBeep(1100, 0.18), 180);
+    successMsg.innerHTML = `✅ 匹配成功！${a.name}放到了 ${keyLabel} 键 <span class="en">Match! ${a.en} on ${keyLabel}</span>`;
+    if (currentKbLevel === 3) playNote(currentTask.key, 0.35);
+    kbSetTimeout(() => {
       taskIndex++;
       if (currentKbLevel === 3) {
         const tasks = getCurrentSegmentTasks();
         if (taskIndex >= tasks.length) {
           const song = songList[currentSongIndex];
-          if (currentSegmentIndex+1 < song.segments.length) {
-            currentSegmentIndex++; taskIndex=0;
-            successMsg.innerHTML = `✅ 本段完成！进入下一段！<span class="en">Segment done! Next segment!</span>`;
+          if (currentSegmentIndex + 1 < song.segments.length) {
+            currentSegmentIndex++; taskIndex = 0;
             renderMelody();
-          } else {
+            successMsg.innerHTML = `✅ 本段完成！进入下一段！<span class="en">Segment done! Next segment!</span>`;
+          } else if (panelKeyboard.classList.contains('active')) {
             playFullMelody();
+          } else {
+            // 面板已隐藏：跳过整曲示范，静默进入下一首
+            currentSongIndex = (currentSongIndex + 1) % songList.length;
+            currentSegmentIndex = 0;
+            taskIndex = 0;
+            updateSongButtons();
+            renderMelody(true);
           }
         } else {
           renderMelody();
@@ -601,8 +749,8 @@ function handlePlace(animalKey, keyElement) {
         if (taskIndex >= currentTasks.length) {
           taskIndex = 0;
           if (currentKbLevel === 1) {
-            successMsg.innerHTML = `✅ 认识音名完成！开始帮我找位置吧！<span class="en">Learned! Find the position!</span>`;
             switchKbLevel(2);
+            successMsg.innerHTML = `✅ 认识音名完成！开始帮我找位置吧！<span class="en">Learned! Find the position!</span>`;
             return;
           } else {
             currentTasks = shuffleTasks();
@@ -612,32 +760,32 @@ function handlePlace(animalKey, keyElement) {
         }
         renderTask();
       }
-    }, 1000);
+    }, 1300);
   } else {
-    keyElement.classList.add('wrong','shake');
-    keyElement.setAttribute('fill','#FFB3B3');
-    playBeep(200,0.25);
-    successMsg.innerHTML = `这个琴键不对哦，再试试～<span class="en">Wrong key, try again</span>`;
-    setTimeout(()=>{
-      keyElement.classList.remove('shake','wrong');
-      keyElement.setAttribute('fill','#fff');
-      successMsg.innerHTML = '';
-    },500);
+    keyElement.classList.add('wrong', 'shake');
+    keyElement.setAttribute('fill', '#FFB3B3');
+    playBeep(200, 0.25);
+    successMsg.innerHTML = `❌ 琴键不对：${a.name}要放到 ${keyLabel} 键 <span class="en">Wrong key — put ${a.en} on ${keyLabel}</span>`;
+    kbSetTimeout(() => {
+      keyElement.classList.remove('shake', 'wrong');
+      keyElement.setAttribute('fill', '#fff');
+      if (currentKbLevel === 3) highlightKey(currentTask.key);
+    }, 600);
   }
 }
 
 function updateSongButtons() {
   const btns = document.querySelectorAll('.song-btn');
-  btns.forEach((btn,i)=>btn.classList.toggle('active', i===currentSongIndex));
+  btns.forEach((btn, i) => btn.classList.toggle('active', i === currentSongIndex));
 }
 function buildSongSelect() {
   songSelect.innerHTML = '';
-  songList.forEach((song,i)=>{
+  songList.forEach((song, i) => {
     const btn = document.createElement('button');
-    btn.className = 'song-btn' + (i===currentSongIndex?' active':'');
+    btn.className = 'song-btn' + (i === currentSongIndex ? ' active' : '');
     btn.innerHTML = song.name + `<span class="en">${song.enName}</span>`;
     btn.dataset.index = i;
-    btn.addEventListener('click',()=>{
+    btn.addEventListener('click', () => {
       if (isBusy) return;
       currentSongIndex = i;
       currentSegmentIndex = 0;
@@ -650,8 +798,10 @@ function buildSongSelect() {
 }
 
 function switchKbLevel(level) {
+  clearKbTimers();
+  isPlayingFullMelody = false;
   currentKbLevel = level;
-  document.querySelectorAll('.level-tab').forEach(btn=>btn.classList.toggle('active', btn.dataset.kbLevel == level));
+  document.querySelectorAll('.level-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.kbLevel == level));
   isBusy = false;
   taskIndex = 0;
   selectedAnimal = null;
@@ -667,6 +817,7 @@ function switchKbLevel(level) {
     melodyRow.style.display = 'none';
     buildAnimalBar(animalBar);
     renderTask();
+    setTimeout(playDragDemo, 400);
   } else if (level === 3) {
     songSelect.style.display = 'flex';
     melodyRow.style.display = 'flex';
@@ -698,7 +849,7 @@ keys.forEach(key=>{
 });
 
 // ========== 触摸拖拽（手机/iPad） ==========
-let touchDragAnimal = null, touchDragClone = null, touchDragStartX = 0, touchDragStartY = 0, touchDragActive = false;
+let touchDragAnimal = null, touchDragClone = null, touchDragStartX = 0, touchDragStartY = 0, touchDragActive = false, touchDragPointerId = null;
 function keyAtPoint(x, y) {
   for (const k of keys) {
     const r = k.getBoundingClientRect();
@@ -708,13 +859,17 @@ function keyAtPoint(x, y) {
 }
 function onAnimalPointerDown(animalKey, e) {
   if (isBusy) return;
+  if (touchDragAnimal !== null) return; // 已有拖拽进行中，忽略其他手指
+  // 捕获指针：窗口外松开也能收到 pointerup，避免拖拽卡死
+  try { e.target.setPointerCapture(e.pointerId); } catch (err) {}
   touchDragAnimal = animalKey;
+  touchDragPointerId = e.pointerId;
   touchDragStartX = e.clientX;
   touchDragStartY = e.clientY;
   touchDragActive = false;
 }
 function onDocPointerMove(e) {
-  if (!touchDragAnimal) return;
+  if (!touchDragAnimal || e.pointerId !== touchDragPointerId) return;
   if (!touchDragActive) {
     if (Math.abs(e.clientX - touchDragStartX) < 10 && Math.abs(e.clientY - touchDragStartY) < 10) return;
     touchDragActive = true;
@@ -729,19 +884,42 @@ function onDocPointerMove(e) {
   e.preventDefault();
 }
 function onDocPointerUp(e) {
-  if (!touchDragAnimal) return;
+  if (!touchDragAnimal || e.pointerId !== touchDragPointerId) return;
   if (touchDragActive && touchDragClone) {
     const keyEl = keyAtPoint(e.clientX, e.clientY);
     document.body.removeChild(touchDragClone);
     touchDragClone = null;
     document.querySelectorAll('.animal-item').forEach(el => el.classList.remove('dragging'));
-    if (keyEl) handlePlace(touchDragAnimal, keyEl);
+    if (keyEl) {
+      handlePlace(touchDragAnimal, keyEl);
+    } else if (currentKbLevel === 3) {
+      successMsg.innerHTML = '👆 请拖到亮起的琴键上 <span class="en">Please drop onto the lit piano key</span>';
+      playBeep(220, 0.2);
+    } else if (currentKbLevel === 2) {
+      successMsg.innerHTML = '没放到琴键上，再拖一次对准琴键 <span class="en">Drop it onto a piano key</span>';
+      playBeep(220, 0.2);
+    } else {
+      successMsg.innerHTML = '可以点选小动物再点琴键哦 <span class="en">Tap the animal, then tap its key</span>';
+    }
   }
   touchDragAnimal = null;
   touchDragActive = false;
+  touchDragPointerId = null;
+}
+function onDocPointerCancel(e) {
+  if (!touchDragAnimal || e.pointerId !== touchDragPointerId) return;
+  if (touchDragClone) {
+    touchDragClone.remove();
+    touchDragClone = null;
+  }
+  document.querySelectorAll('.animal-item').forEach(el => el.classList.remove('dragging'));
+  touchDragAnimal = null;
+  touchDragActive = false;
+  touchDragPointerId = null;
 }
 document.addEventListener('pointermove', onDocPointerMove);
 document.addEventListener('pointerup', onDocPointerUp);
+document.addEventListener('pointercancel', onDocPointerCancel);
 
 // 标签切换
 const tabBeat = document.getElementById('tabBeat');
@@ -751,6 +929,18 @@ const panelKeyboard = document.getElementById('keyboardPanel');
 tabBeat.addEventListener('click',()=>{
   tabBeat.classList.add('active'); tabKeyboard.classList.remove('active');
   panelBeat.classList.add('active'); panelKeyboard.classList.remove('active');
+  if (isPlayingFullMelody) {
+    // 整曲示范被打断：直接推进到下一首开头（与 playFullMelody 末尾一致），隐藏面板不发声
+    clearKbTimers();
+    isPlayingFullMelody = false;
+    currentSongIndex = (currentSongIndex + 1) % songList.length;
+    currentSegmentIndex = 0;
+    taskIndex = 0;
+    updateSongButtons();
+    isBusy = false;
+    renderMelody(true);
+  }
+  // 答题反馈中的短计时器保留，会在面板隐藏时静默完成推进
 });
 tabKeyboard.addEventListener('click',()=>{
   tabKeyboard.classList.add('active'); tabBeat.classList.remove('active');
