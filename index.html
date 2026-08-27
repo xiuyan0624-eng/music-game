@@ -34,13 +34,33 @@
     margin-top: 2px;
   }
   h2 { font-size: 1.4rem; margin-bottom: 4px; }
-  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-  .tab {
-    flex: 1; border: none; background: #FFE3E8; color: #4A3B52;
-    font-size: 0.95rem; font-weight: 800; padding: 10px 4px;
-    border-radius: 20px; cursor: pointer; transition: 0.2s;
+  /* ========== 大项目 / 小项目 层级导航 ========== */
+  .project-select { display: block; }
+  .project-select.hidden { display: none; }
+  .project-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+  .project-card {
+    display: flex; align-items: center; gap: 14px;
+    width: 100%; border: 4px solid #fff; background: linear-gradient(135deg, #FFF0E8, #FFE3E8);
+    color: #4A3B52; padding: 16px 18px; border-radius: 24px; cursor: pointer;
+    box-shadow: 0 6px 0 rgba(209,154,46,0.35), 0 10px 20px rgba(0,0,0,0.12);
+    transition: 0.15s; text-align: left;
   }
-  .tab.active { background: #FFD166; box-shadow: 0 3px 0 #D19A2E; }
+  .project-card:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(209,154,46,0.35), 0 6px 12px rgba(0,0,0,0.12); }
+  .project-card .project-icon { font-size: 2.2rem; line-height: 1; }
+  .project-card .project-body { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .project-card .project-title { font-size: 1.25rem; font-weight: 900; color: #4A3B52; }
+  .project-card .project-title .en { display: inline; font-size: 0.7rem; color: #999; margin-left: 6px; }
+  .project-card .project-sub { font-size: 0.85rem; font-weight: 700; color: #FF6F91; }
+
+  .sub-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .back-btn {
+    border: none; background: #FFE3E8; color: #4A3B52; font-size: 0.85rem; font-weight: 800;
+    padding: 8px 14px; border-radius: 20px; cursor: pointer; transition: 0.2s;
+    box-shadow: 0 3px 0 #E0A9B8;
+  }
+  .back-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #E0A9B8; }
+  .sub-nav-title { font-size: 1rem; font-weight: 900; color: #4A3B52; }
+
   .panel { display: none; }
   .panel.active { display: block; }
 
@@ -75,15 +95,27 @@
     box-shadow: 0 0 10px rgba(255,111,145,0.5); transform: scale(1.05);
   }
   .beat-item .beat-label { font-size: 0.7rem; font-weight: 700; color: #4A3B52; margin-top: 2px; }
-  .beat-btn {
-    width: 120px; height: 120px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #FFF0B3, #FFD166 60%, #FFB347);
-    border: none; box-shadow: 0 7px 0 #D19A2E, 0 10px 18px rgba(0,0,0,0.15);
-    cursor: pointer; transition: 0.1s; margin: 10px auto 12px;
+  .beat-keys {
     display: flex; justify-content: center; align-items: center;
-    font-size: 0.9rem; color: transparent;
+    gap: 12px; margin: 10px auto 12px; flex-wrap: wrap;
   }
-  .beat-btn:active { transform: translateY(4px); box-shadow: 0 3px 0 #D19A2E; }
+  .beat-key {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #FFF0B3, #FFD166 60%, #FFB347);
+    border: none; box-shadow: 0 6px 0 #D19A2E, 0 8px 16px rgba(0,0,0,0.15);
+    cursor: pointer; transition: 0.1s;
+    font-size: 1.6rem; font-weight: 900; color: #4A3B52;
+    display: flex; justify-content: center; align-items: center;
+  }
+  .beat-key:active { transform: translateY(3px); box-shadow: 0 3px 0 #D19A2E; }
+  .beat-key.pressed {
+    background: radial-gradient(circle at 30% 30%, #FFE9A8, #7ED9A8 70%, #5BC98A);
+    box-shadow: 0 3px 0 #4FA97A; transform: translateY(3px);
+  }
+  .beat-key.wrong {
+    background: radial-gradient(circle at 30% 30%, #FFD0D0, #FF8A8A 70%, #E57373);
+    box-shadow: 0 3px 0 #C2555F; transform: translateY(3px);
+  }
   .beat-message { font-size: 0.9rem; font-weight: 800; color: #4A3B52; min-height: 24px; }
   /* 认识时值：放大音符图标 */
   .beat-note .animal-part svg { width: 110px; height: auto; }
@@ -155,6 +187,7 @@
   .animal-item.dragging { opacity: 0.4; }
   .animal-item .animal-name { font-size: 0.7rem; font-weight: 700; color: #4A3B52; }
   .animal-item .animal-key { font-size: 0.6rem; color: #999; font-weight: 700; }
+  .animal-item .animal-key .first-letter { font-size: 1.6em; font-weight: 900; color: #FF6F91; }
   .key-drop-feedback {
     position: absolute; pointer-events: none; z-index: 20;
     animation: dropPop 0.7s ease-out forwards;
@@ -187,11 +220,45 @@
   .success-msg { font-size: 0.9rem; font-weight: 800; color: #FF6F91; min-height: 24px; margin-top: 4px; }
   .progress { color: #aaa; font-size: 0.7rem; font-weight: 700; margin-bottom: 6px; }
 
+  /* ========== 自己创作音乐 ========== */
+  .compose-bars { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .compose-label { font-size: 0.85rem; font-weight: 800; color: #4A3B52; }
+  .compose-bar-btn {
+    border: none; background: #FFF0E8; color: #4A3B52; font-size: 0.85rem; font-weight: 800;
+    padding: 8px 14px; border-radius: 14px; cursor: pointer; transition: 0.2s;
+  }
+  .compose-bar-btn.active { background: #FFD166; box-shadow: 0 2px 0 #D19A2E; }
+  .compose-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .compose-bar { background: #FFF0E8; border-radius: 14px; padding: 8px; }
+  .compose-bar-label { font-size: 0.7rem; font-weight: 800; color: #999; margin-bottom: 4px; text-align: left; }
+  .compose-bar-row { display: flex; gap: 6px; justify-content: center; }
+  .compose-cell {
+    width: 44px; height: 44px; border-radius: 10px; border: 2px dashed #E0C9A6;
+    background: rgba(255,255,255,0.7); font-size: 1rem; font-weight: 900; color: #4A3B52;
+    cursor: pointer; transition: 0.15s; display: flex; justify-content: center; align-items: center;
+  }
+  .compose-cell.filled { border-style: solid; border-color: #FFD166; background: #FFF0E8; }
+  .compose-cell.cursor { border-color: #FF6F91; box-shadow: 0 0 8px rgba(255,111,145,0.5); }
+  .compose-cell.playing { background: #FFD166; border-color: #FF6F91; transform: scale(1.08); }
+  .compose-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .compose-btn {
+    border: none; background: #FFE3E8; color: #4A3B52; font-size: 0.85rem; font-weight: 800;
+    padding: 10px 16px; border-radius: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 3px 0 #E0A9B8;
+  }
+  .compose-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #E0A9B8; }
+  .compose-btn.compose-play { background: #FFD166; box-shadow: 0 3px 0 #D19A2E; }
+  .compose-btn.compose-play:active { box-shadow: 0 1px 0 #D19A2E; }
+  .compose-status { font-size: 0.8rem; font-weight: 800; color: #FF6F91; min-height: 20px; }
+
   svg .key-white { cursor: pointer; transition: 0.1s; }
   svg .key-white:hover { fill: #FFE3E8; }
   svg .key-white.correct { fill: #7ED9A8; }
   svg .key-white.wrong { fill: #FFB3B3; }
   svg .key-white.shake { animation: shake 0.4s; }
+  /* 作曲模式：琴键上的小动物图标 */
+  .key-animal { display: none; pointer-events: none; }
+  #keyboardSvg.show-animals .key-animal { display: block; }
+  .key-animal svg { width: 40px; height: 40px; }
   @keyframes shake {
     0%,100% { transform: translateX(0); }
     25% { transform: translateX(-3px); }
@@ -209,11 +276,14 @@
       margin: 5px auto;
     }
     h2 { font-size: 1.1rem; }
-    .tab { font-size: 0.8rem; padding: 8px 2px; }
+    .project-card { padding: 14px 14px; gap: 10px; }
+    .project-card .project-icon { font-size: 1.8rem; }
+    .project-card .project-title { font-size: 1.05rem; }
     .level-tab { font-size: 0.7rem; padding: 8px 1px; }
     .level-tab .en { font-size: 0.55rem; }
     .task-box { font-size: 0.8rem; min-height: 55px; }
-    .beat-btn { width: 100px; height: 100px; }
+    .beat-key { width: 54px; height: 54px; font-size: 1.3rem; }
+    .beat-keys { gap: 8px; }
     .animal-item { min-width: 42px; padding: 3px 4px; }
     .animal-item svg { width: 30px !important; height: 30px !important; }
     .melody-note { width: 26px; height: 26px; font-size: 0.75rem; }
@@ -224,7 +294,9 @@
   @media (min-width: 481px) {
     .app { max-width: 880px; padding: 28px; }
     h2 { font-size: 2rem; }
-    .tab { font-size: 1.2rem; padding: 14px 6px; }
+    .project-card { padding: 20px 24px; gap: 16px; }
+    .project-card .project-icon { font-size: 2.6rem; }
+    .project-card .project-title { font-size: 1.5rem; }
     .stage-btn { font-size: 1.05rem; }
     .level-tab { font-size: 1rem; }
     .level-tab .en { font-size: 0.7rem; }
@@ -234,7 +306,7 @@
     .animal-item .animal-name { font-size: 0.95rem; }
     .animal-item .animal-key { font-size: 0.8rem; }
     .melody-note { width: 42px; height: 42px; font-size: 1.1rem; }
-    .beat-btn { width: 180px; height: 180px; }
+    .beat-key { width: 88px; height: 88px; font-size: 2rem; }
     .keyboard-tip { font-size: 0.85rem; }
     .success-msg { font-size: 1.1rem; }
   }
@@ -243,29 +315,58 @@
 <body>
 <div class="app">
   <h2>🎵 乐理小游戏 <span class="en">Music Theory Game</span></h2>
-  <div class="tabs">
-    <button class="tab active" id="tabBeat">🎵 节拍游戏 <span class="en">Beat Game</span></button>
-    <button class="tab" id="tabKeyboard">🐸 我是谁？<span class="en">Who Am I?</span></button>
+  <!-- 大项目入口：卡片层 -->
+  <div class="project-select" id="projectSelect">
+    <div class="project-grid">
+      <button class="project-card" id="projectBeat" data-project="beat">
+        <span class="project-icon">🎵</span>
+        <span class="project-body">
+          <span class="project-title">节拍游戏 <span class="en">Beat Game</span></span>
+          <span class="project-sub">认识时值 · 拍出节奏</span>
+        </span>
+      </button>
+      <button class="project-card" id="projectKeyboard" data-project="keyboard">
+        <span class="project-icon">🐸</span>
+        <span class="project-body">
+          <span class="project-title">我是谁？ <span class="en">Who Am I?</span></span>
+          <span class="project-sub">认识音名 · 玩转钢琴</span>
+        </span>
+      </button>
+    </div>
   </div>
 
   <!-- 节拍游戏面板 -->
-  <div class="panel active" id="beatPanel">
+  <div class="panel" id="beatPanel">
+    <div class="sub-nav">
+      <button class="back-btn" data-back>← 项目</button>
+      <span class="sub-nav-title">🎵 节拍游戏</span>
+    </div>
     <div class="stage-select">
       <button class="stage-btn active" data-stage="learn">认识时值 <span class="en">Learn Values</span></button>
       <button class="stage-btn" data-stage="random">随机排列 <span class="en">Random Order</span></button>
     </div>
     <div class="level-info" id="beatLevelInfo"></div>
     <div id="beatDisplayArea"></div>
-    <button class="beat-btn" id="beatBtn"></button>
+    <div class="beat-keys" id="beatKeys">
+      <button class="beat-key" data-n="1">1</button>
+      <button class="beat-key" data-n="2">2</button>
+      <button class="beat-key" data-n="3">3</button>
+      <button class="beat-key" data-n="4">4</button>
+    </div>
     <div class="beat-message" id="beatMsg"></div>
   </div>
 
   <!-- 我是谁？三关面板 -->
   <div class="panel" id="keyboardPanel">
+    <div class="sub-nav">
+      <button class="back-btn" data-back>← 项目</button>
+      <span class="sub-nav-title">🐸 我是谁？</span>
+    </div>
     <div class="level-tabs">
       <button class="level-tab active" data-kb-level="1">认识音名 <span class="en">Learn Notes</span></button>
       <button class="level-tab" data-kb-level="2">帮我找位置 <span class="en">Find Position</span></button>
       <button class="level-tab" data-kb-level="3">旋律游戏 <span class="en">Melody Game</span></button>
+      <button class="level-tab" data-kb-level="4">自己创作 <span class="en">Compose</span></button>
     </div>
 
     <div id="kbTaskArea">
@@ -275,6 +376,21 @@
       <div class="drag-guide" id="dragGuide"></div>
       <div class="melody-row" id="melodyRow" style="display:none;"></div>
       <div class="animal-bar" id="animalBar"></div>
+      <div id="composeArea" style="display:none;">
+        <div class="compose-bars">
+          <span class="compose-label">选择小节数：</span>
+          <button class="compose-bar-btn active" data-bars="4">4 小节</button>
+          <button class="compose-bar-btn" data-bars="6">6 小节</button>
+          <button class="compose-bar-btn" data-bars="8">8 小节</button>
+        </div>
+        <div class="compose-grid" id="composeGrid"></div>
+        <div class="compose-controls">
+          <button class="compose-btn" id="composeBack">← 后退</button>
+          <button class="compose-btn" id="composeClear">清空</button>
+          <button class="compose-btn compose-play" id="composePlay">▶ AI 演奏</button>
+        </div>
+        <div class="compose-status" id="composeStatus"></div>
+      </div>
     </div>
 
     <svg id="keyboardSvg" viewBox="0 0 560 180" style="width:100%; height:auto;">
@@ -290,6 +406,13 @@
       <rect x="280" y="20" width="45" height="85" rx="5" fill="#333"/>
       <rect x="355" y="20" width="45" height="85" rx="5" fill="#333"/>
       <rect x="430" y="20" width="45" height="85" rx="5" fill="#333"/>
+      <foreignObject class="key-animal" data-animal="cat" x="20" y="106" width="50" height="46"></foreignObject>
+      <foreignObject class="key-animal" data-animal="dog" x="95" y="106" width="50" height="46"></foreignObject>
+      <foreignObject class="key-animal" data-animal="elephant" x="170" y="106" width="50" height="46"></foreignObject>
+      <foreignObject class="key-animal" data-animal="fox" x="245" y="106" width="50" height="46"></foreignObject>
+      <foreignObject class="key-animal" data-animal="goat" x="320" y="106" width="50" height="46"></foreignObject>
+      <foreignObject class="key-animal" data-animal="ant" x="395" y="106" width="50" height="46"></foreignObject>
+      <foreignObject class="key-animal" data-animal="bear" x="470" y="106" width="50" height="46"></foreignObject>
       <text x="45" y="175" font-size="18" font-weight="bold" fill="#FF6F91" text-anchor="middle">C</text>
       <text x="120" y="175" font-size="16" fill="#888" text-anchor="middle">D</text>
       <text x="195" y="175" font-size="16" fill="#888" text-anchor="middle">E</text>
@@ -378,9 +501,12 @@ function buildRandomGroupQuestions() {
 }
 let beatState = { questions:[], currentIndex:0, tapCount:0, busy:false };
 const beatDisplayArea = document.getElementById('beatDisplayArea');
-const beatBtn = document.getElementById('beatBtn');
 const beatMsg = document.getElementById('beatMsg');
 const beatLevelInfo = document.getElementById('beatLevelInfo');
+const beatKeyButtons = Array.from(document.querySelectorAll('.beat-key'));
+function resetBeatKeys() {
+  beatKeyButtons.forEach(k => k.classList.remove('pressed', 'wrong'));
+}
 function renderBeat() {
   if (!beatState.questions.length) return;
   const q = beatState.questions[beatState.currentIndex];
@@ -399,21 +525,26 @@ function renderBeat() {
   beatMsg.innerHTML = '';
   beatState.tapCount = 0;
   beatState.busy = false;
+  resetBeatKeys();
 }
-beatBtn.addEventListener('click', ()=>{
+function handleBeatKey(n) {
   if (beatState.busy || !beatState.questions.length) return;
   const q = beatState.questions[beatState.currentIndex];
   const note = beatNotePool[q.noteKey];
-  beatState.tapCount++;
-  playBeep(600,0.1);
-  if (beatState.tapCount <= note.taps) speakNumber(beatState.tapCount);
-  if (beatState.tapCount > note.taps) {
+  // 必须按顺序：1 → 2 → 3 → 4
+  if (n !== beatState.tapCount + 1) {
     beatState.busy = true;
-    beatMsg.innerHTML = '❌ 点多了，再试一次 <span class="en">Too many taps, try again</span>';
+    const expected = beatState.tapCount + 1;
+    beatMsg.innerHTML = `❌ 顺序不对，下一个应是 ${expected} <span class="en">Wrong — next is ${expected}</span>`;
     playBeep(200,0.3);
+    beatKeyButtons.forEach(k => { if (k.dataset.n == n) k.classList.add('wrong'); });
     setTimeout(()=>renderBeat(),800);
     return;
   }
+  beatState.tapCount++;
+  playBeep(600,0.1);
+  if (beatState.tapCount <= note.taps) speakNumber(beatState.tapCount);
+  beatKeyButtons.forEach(k => { if (k.dataset.n == n) k.classList.add('pressed'); });
   if (beatState.tapCount === note.taps) {
     beatState.busy = true;
     playBeep(880,0.2);
@@ -429,6 +560,9 @@ beatBtn.addEventListener('click', ()=>{
       setTimeout(()=>{ beatState.currentIndex++; renderBeat(); },1000);
     }
   }
+}
+beatKeyButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=> handleBeatKey(parseInt(btn.dataset.n)));
 });
 function loadBeatStage(stage) {
   if (stage === 'learn') beatState.questions = buildLearnQuestions();
@@ -533,6 +667,11 @@ const songSelect = document.getElementById('songSelect');
 const dragGuide = document.getElementById('dragGuide');
 const keyboardTip = document.getElementById('keyboardTip');
 const keys = document.querySelectorAll('.key-white');
+// 注入琴键上的小动物图标（作曲模式显示）
+document.querySelectorAll('.key-animal').forEach(fo => {
+  const a = animalData[fo.dataset.animal];
+  if (a) fo.innerHTML = `<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;">${a.svg}</div>`;
+});
 
 function updateDragGuides() {
   if (currentKbLevel === 1) {
@@ -555,7 +694,7 @@ function buildAnimalBar(container) {
     item.className = 'animal-item' + (showDragHint ? ' draggable-hint' : '');
     item.dataset.animal = k;
     const badge = showDragHint ? '<span class="drag-badge">拖</span>' : '';
-    item.innerHTML = badge + data.svg + `<span class="animal-name">${data.name}</span><span class="animal-key">${data.en}</span>`;
+    item.innerHTML = badge + data.svg + `<span class="animal-name">${data.name}</span><span class="animal-key"><strong class="first-letter">${data.letter}</strong>${data.en.slice(1)}</span>`;
     item.addEventListener('click', () => {
       if (isBusy) return;
       document.querySelectorAll(`#${container.id} .animal-item`).forEach(el => el.classList.remove('selected'));
@@ -837,15 +976,137 @@ function buildSongSelect() {
   });
 }
 
+// ========== 自己创作音乐 ==========
+const composeArea = document.getElementById('composeArea');
+const composeGrid = document.getElementById('composeGrid');
+const composeStatus = document.getElementById('composeStatus');
+const composeBackBtn = document.getElementById('composeBack');
+const composeClearBtn = document.getElementById('composeClear');
+const composePlayBtn = document.getElementById('composePlay');
+const NOTE_LABEL = { 'C4':'C', 'D':'D', 'E':'E', 'F':'F', 'G':'G', 'A':'A', 'B':'B' };
+let composeState = { bars: 4, notes: [], cursor: 0, playing: false };
+
+function initCompose() {
+  composeState.notes = new Array(composeState.bars * 4).fill(null);
+  composeState.cursor = 0;
+  composeState.playing = false;
+  renderComposeGrid();
+  updateComposeStatus();
+}
+function renderComposeGrid() {
+  composeGrid.innerHTML = '';
+  for (let bar = 0; bar < composeState.bars; bar++) {
+    const barEl = document.createElement('div');
+    barEl.className = 'compose-bar';
+    const barLabel = document.createElement('div');
+    barLabel.className = 'compose-bar-label';
+    barLabel.textContent = `第 ${bar + 1} 小节`;
+    barEl.appendChild(barLabel);
+    const row = document.createElement('div');
+    row.className = 'compose-bar-row';
+    for (let beat = 0; beat < 4; beat++) {
+      const idx = bar * 4 + beat;
+      const note = composeState.notes[idx];
+      const cell = document.createElement('button');
+      cell.className = 'compose-cell' + (note ? ' filled' : '') + (idx === composeState.cursor ? ' cursor' : '');
+      cell.dataset.idx = idx;
+      cell.textContent = note ? NOTE_LABEL[note] : '';
+      cell.addEventListener('click', () => {
+        if (composeState.playing) return;
+        composeState.cursor = idx;
+        renderComposeGrid();
+        updateComposeStatus();
+      });
+      row.appendChild(cell);
+    }
+    barEl.appendChild(row);
+    composeGrid.appendChild(barEl);
+  }
+}
+function updateComposeStatus() {
+  const filled = composeState.notes.filter(Boolean).length;
+  const bar = Math.floor(composeState.cursor / 4) + 1;
+  const beat = (composeState.cursor % 4) + 1;
+  composeStatus.innerHTML = `已填 ${filled} / ${composeState.notes.length} 个音 · 当前：第 ${bar} 小节第 ${beat} 拍 <span class="en">Tap a piano key to fill the current beat</span>`;
+}
+function handleComposeKey(keyName) {
+  if (composeState.playing) return;
+  if (composeState.cursor >= composeState.notes.length) return;
+  composeState.notes[composeState.cursor] = keyName;
+  playNote(keyName, 0.25);
+  composeState.cursor = Math.min(composeState.cursor + 1, composeState.notes.length);
+  renderComposeGrid();
+  updateComposeStatus();
+}
+function composeBack() {
+  if (composeState.playing) return;
+  if (composeState.cursor > 0) composeState.cursor--;
+  composeState.notes[composeState.cursor] = null;
+  renderComposeGrid();
+  updateComposeStatus();
+}
+function composeClear() {
+  if (composeState.playing) return;
+  composeState.notes = new Array(composeState.bars * 4).fill(null);
+  composeState.cursor = 0;
+  renderComposeGrid();
+  updateComposeStatus();
+}
+function composePlay() {
+  const filled = [];
+  composeState.notes.forEach((n, i) => { if (n) filled.push({ note: n, idx: i }); });
+  if (!filled.length) {
+    composeStatus.innerHTML = '请先填入音符 <span class="en">Please add some notes first</span>';
+    return;
+  }
+  if (composeState.playing) return;
+  composeState.playing = true;
+  composeStatus.innerHTML = '🎵 AI 演奏中… <span class="en">Playing your melody…</span>';
+  const notes = filled.map(f => f.note);
+  const idxs = filled.map(f => f.idx);
+  playMelodySequence(notes, notes.map(() => 1), (_n, i) => {
+    highlightComposeCell(idxs[i]);
+  }, () => {
+    composeState.playing = false;
+    isBusy = false;
+    renderComposeGrid();
+    composeStatus.innerHTML = '✅ 演奏完成！<span class="en">Finished!</span>';
+  }, 500);
+}
+function highlightComposeCell(idx) {
+  const cells = composeGrid.querySelectorAll('.compose-cell');
+  cells.forEach((c, i) => c.classList.toggle('playing', i === idx));
+}
+document.querySelectorAll('.compose-bar-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (composeState.playing) return;
+    document.querySelectorAll('.compose-bar-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    composeState.bars = parseInt(btn.dataset.bars);
+    initCompose();
+  });
+});
+composeBackBtn.addEventListener('click', composeBack);
+composeClearBtn.addEventListener('click', composeClear);
+composePlayBtn.addEventListener('click', composePlay);
+
 function switchKbLevel(level) {
   clearKbTimers();
   isPlayingFullMelody = false;
   isPlayingSegmentDemo = false;
+  composeState.playing = false;
   currentKbLevel = level;
   document.querySelectorAll('.level-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.kbLevel == level));
   isBusy = false;
   taskIndex = 0;
   selectedAnimal = null;
+  // 恢复默认显示
+  taskBox.style.display = '';
+  dragGuide.style.display = '';
+  progress.style.display = '';
+  animalBar.style.display = '';
+  composeArea.style.display = 'none';
+  document.getElementById('keyboardSvg').classList.remove('show-animals');
   if (level === 1) {
     currentTasks = [...taskPool];
     songSelect.style.display = 'none';
@@ -867,6 +1128,18 @@ function switchKbLevel(level) {
     currentSegmentIndex = 0;
     taskIndex = 0;
     renderMelody();
+  } else if (level === 4) {
+    songSelect.style.display = 'none';
+    melodyRow.style.display = 'none';
+    animalBar.style.display = 'none';
+    taskBox.style.display = 'none';
+    dragGuide.style.display = 'none';
+    progress.style.display = 'none';
+    keyboardTip.innerHTML = '点琴键，把音名填到当前拍 <span class="en">Tap a key to fill the current beat</span>';
+    successMsg.innerHTML = '';
+    composeArea.style.display = 'block';
+    document.getElementById('keyboardSvg').classList.add('show-animals');
+    initCompose();
   }
 }
 
@@ -879,6 +1152,10 @@ document.querySelectorAll('.level-tab').forEach(btn=>{
 keys.forEach(key=>{
   key.addEventListener('click',()=>{
     if (isBusy) return;
+    if (currentKbLevel === 4) {
+      handleComposeKey(key.dataset.key);
+      return;
+    }
     if (!selectedAnimal) {
       successMsg.innerHTML = `请先选一只小动物 <span class="en">Please choose an animal first</span>`;
       key.classList.add('shake');
@@ -962,14 +1239,13 @@ document.addEventListener('pointermove', onDocPointerMove);
 document.addEventListener('pointerup', onDocPointerUp);
 document.addEventListener('pointercancel', onDocPointerCancel);
 
-// 标签切换
-const tabBeat = document.getElementById('tabBeat');
-const tabKeyboard = document.getElementById('tabKeyboard');
+// ========== 大项目/小项目导航 ==========
+const projectSelect = document.getElementById('projectSelect');
+const projectBeat = document.getElementById('projectBeat');
+const projectKeyboard = document.getElementById('projectKeyboard');
 const panelBeat = document.getElementById('beatPanel');
 const panelKeyboard = document.getElementById('keyboardPanel');
-tabBeat.addEventListener('click',()=>{
-  tabBeat.classList.add('active'); tabKeyboard.classList.remove('active');
-  panelBeat.classList.add('active'); panelKeyboard.classList.remove('active');
+function interruptMelody() {
   if (isPlayingFullMelody) {
     // 整曲示范被打断：直接推进到下一首开头（与 playFullMelody 末尾一致），隐藏面板不发声
     clearKbTimers();
@@ -988,13 +1264,26 @@ tabBeat.addEventListener('click',()=>{
     afterSegmentDemo(true);
   }
   // 答题反馈中的短计时器保留，会在面板隐藏时静默完成推进
-});
-tabKeyboard.addEventListener('click',()=>{
-  tabKeyboard.classList.add('active'); tabBeat.classList.remove('active');
-  panelKeyboard.classList.add('active'); panelBeat.classList.remove('active');
+}
+function showProject(project) {
+  projectSelect.classList.add('hidden');
+  panelBeat.classList.toggle('active', project === 'beat');
+  panelKeyboard.classList.toggle('active', project === 'keyboard');
+}
+function showProjectSelect() {
+  interruptMelody();
+  projectSelect.classList.remove('hidden');
+  panelBeat.classList.remove('active');
+  panelKeyboard.classList.remove('active');
+}
+projectBeat.addEventListener('click', ()=> showProject('beat'));
+projectKeyboard.addEventListener('click', ()=> showProject('keyboard'));
+document.querySelectorAll('.back-btn').forEach(btn=>{
+  btn.addEventListener('click', showProjectSelect);
 });
 
 // 初始化
+showProjectSelect();
 loadBeatStage('learn');
 switchKbLevel(1);
 </script>
