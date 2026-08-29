@@ -3,193 +3,482 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>乐理游戏 · 节拍 + 音名（响应式）</title>
+<title>乐理小游戏｜认识节拍与音名</title>
 <style>
-  /* ========== 全局重置与基础 ========== */
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(160deg, #FF6F91, #4FC3F7);
-    min-height: 100vh;
-    padding: 10px;
+  :root {
+    --ink: #211b1c;
+    --pink: #ef7fab;
+    --pink-dark: #c74f7d;
+    --cream: #fff8e8;
+    --paper: #fffdf7;
+    --yellow: #f7c64d;
+    --green: #2b9b67;
+    --blue: #6f8fe8;
+    --muted: #766562;
   }
-  body { display: flex; justify-content: center; align-items: flex-start; }
-  .app {
-    width: 100%;
-    max-width: 600px;
-    background: rgba(255,255,255,0.95);
-    border-radius: 30px;
-    padding: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    border: 5px solid #fff;
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  html, body {
+    min-width: 320px;
+    min-height: 100vh;
+    color: var(--ink);
+    font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+  }
+  body { background: #ffe9b8; }
+  button, input { font: inherit; color: inherit; }
+
+  .app-shell {
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 8% 15%, rgba(239,127,171,.18) 0 8%, transparent 8.2%),
+      radial-gradient(circle at 96% 76%, rgba(43,155,103,.14) 0 10%, transparent 10.2%),
+      linear-gradient(180deg, #fff6df 0%, #ffe8bd 100%);
+  }
+
+  .topbar {
+    width: min(980px, calc(100% - 40px));
+    height: 78px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 5;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 21px;
+    font-weight: 950;
+  }
+  .brand-mark {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    background: var(--pink);
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: rotate(-6deg);
+    font-size: 20px;
+  }
+  .brand em {
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: var(--yellow);
+    font-size: 10px;
+    font-style: normal;
+    letter-spacing: .06em;
+    font-weight: 900;
+  }
+
+  .hero {
+    width: min(980px, calc(100% - 40px));
+    margin: 8px auto 28px;
+  }
+
+  .game-card {
+    overflow: hidden;
+    border: 3px solid var(--ink);
+    border-radius: 31px 24px 34px 27px;
+    background: var(--paper);
+    box-shadow: 8px 9px 0 var(--ink);
+    padding: 22px 24px 26px;
     text-align: center;
   }
+
   .en {
     display: block;
     font-size: 0.7rem;
-    font-weight: 600;
-    color: #999;
+    font-weight: 700;
+    color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.04em;
     margin-top: 2px;
   }
-  h2 { font-size: 1.4rem; margin-bottom: 4px; }
-  /* ========== 大项目 / 小项目 层级导航 ========== */
+
+  .page-kicker {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .page-title {
+    margin: 0 0 6px;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 950;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .page-lead {
+    margin: 0 auto 18px;
+    max-width: 28em;
+    color: #655956;
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.5;
+  }
+
   .project-select { display: block; }
   .project-select.hidden { display: none; }
-  .project-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
-  .project-card {
-    display: flex; align-items: center; gap: 14px;
-    width: 100%; border: 4px solid #fff; background: linear-gradient(135deg, #FFF0E8, #FFE3E8);
-    color: #4A3B52; padding: 16px 18px; border-radius: 24px; cursor: pointer;
-    box-shadow: 0 6px 0 rgba(209,154,46,0.35), 0 10px 20px rgba(0,0,0,0.12);
-    transition: 0.15s; text-align: left;
-  }
-  .project-card:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(209,154,46,0.35), 0 6px 12px rgba(0,0,0,0.12); }
-  .project-card .project-icon { font-size: 2.2rem; line-height: 1; }
-  .project-card .project-body { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-  .project-card .project-title { font-size: 1.25rem; font-weight: 900; color: #4A3B52; }
-  .project-card .project-title .en { display: inline; font-size: 0.7rem; color: #999; margin-left: 6px; }
-  .project-card .project-sub { font-size: 0.85rem; font-weight: 700; color: #FF6F91; }
+  .game-card:has(#projectSelect.hidden) .page-kicker,
+  .game-card:has(#projectSelect.hidden) .page-title,
+  .game-card:has(#projectSelect.hidden) .page-lead { display: none; }
 
-  .sub-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-  .back-btn {
-    border: none; background: #FFE3E8; color: #4A3B52; font-size: 0.85rem; font-weight: 800;
-    padding: 8px 14px; border-radius: 20px; cursor: pointer; transition: 0.2s;
-    box-shadow: 0 3px 0 #E0A9B8;
+  .home-hero {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.1fr);
+    gap: 18px;
+    align-items: stretch;
+    text-align: left;
   }
-  .back-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #E0A9B8; }
-  .sub-nav-title { font-size: 1rem; font-weight: 900; color: #4A3B52; }
+  .illustration-stage {
+    position: relative;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 3px solid var(--ink);
+    border-radius: 22px 17px 25px 19px;
+    background: #fff7dc;
+    box-shadow: 5px 6px 0 rgba(33,27,28,.2);
+  }
+  .scene-frame {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+  .star-melody { position: absolute; inset: 0; pointer-events: none; }
+  .star-melody i {
+    position: absolute;
+    color: var(--yellow);
+    font-style: normal;
+    font-size: 20px;
+    text-shadow: 2px 2px 0 var(--ink);
+    animation: star-float 1.6s ease-out infinite;
+  }
+  .star-melody i:nth-child(1) { left: 18%; top: 16%; }
+  .star-melody i:nth-child(2) { left: 72%; top: 12%; animation-delay: .42s; color: #f47ba9; }
+  .star-melody i:nth-child(3) { left: 82%; top: 28%; animation-delay: .84s; }
+
+  .project-grid { display: flex; flex-direction: column; gap: 12px; }
+  .project-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 92px;
+    border: 3px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+    padding: 14px 16px;
+    border-radius: 21px 18px 24px 16px;
+    cursor: pointer;
+    box-shadow: 5px 5px 0 var(--ink);
+    transition: .14s ease;
+    text-align: left;
+  }
+  .project-card:hover { transform: translate(-2px,-3px); box-shadow: 7px 7px 0 var(--ink); background: #fff8db; }
+  .project-card:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 var(--ink); }
+  .project-card .project-icon {
+    width: 54px;
+    height: 54px;
+    flex: 0 0 54px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    background: #fff7dc;
+    box-shadow: 3px 3px 0 var(--ink);
+    padding: 0;
+  }
+  .project-card .project-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .project-card .project-body { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+  .project-card .project-title { font-size: 1.25rem; font-weight: 950; }
+  .project-card .project-title .en { display: inline; font-size: 0.68rem; margin-left: 6px; }
+  .project-card .project-sub { font-size: 0.82rem; font-weight: 800; color: var(--pink-dark); }
+
+  .sub-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    text-align: left;
+  }
+  .back-btn, .stage-btn, .level-tab, .song-btn, .compose-bar-btn, .compose-btn {
+    min-height: 44px;
+    border: 3px solid var(--ink);
+    cursor: pointer;
+    font-weight: 900;
+    transition: .14s ease;
+  }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 99px;
+    background: #fff;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .back-btn:hover, .stage-btn:hover, .level-tab:hover, .song-btn:hover, .compose-bar-btn:hover, .compose-btn:hover {
+    transform: translate(-1px,-2px);
+    box-shadow: 6px 6px 0 var(--ink);
+    background: #fff3a8;
+  }
+  .back-btn:active, .stage-btn:active, .level-tab:active, .song-btn:active, .compose-bar-btn:active, .compose-btn:active {
+    transform: translate(3px,3px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  .sub-nav-title { font-size: 1.05rem; font-weight: 950; }
 
   .panel { display: none; }
   .panel.active { display: block; }
 
-  /* ========== 节拍游戏 ========== */
-  .stage-select { display: flex; gap: 6px; margin-bottom: 10px; }
-  .stage-btn {
-    flex: 1; border: none; background: #FFF0E8; color: #4A3B52;
-    font-size: 0.85rem; font-weight: 800; padding: 10px 2px;
-    border-radius: 16px; cursor: pointer; transition: 0.2s;
+  .stage-select, .level-tabs {
+    width: max-content;
+    max-width: 100%;
+    margin: 0 auto 12px;
+    padding: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    border: 2px solid var(--ink);
+    border-radius: 99px;
+    background: #f3eadc;
   }
-  .stage-btn.active { background: #FFD166; box-shadow: 0 2px 0 #D19A2E; }
-  .level-info { font-size: 0.75rem; color: #999; font-weight: 700; margin-bottom: 10px; }
+  .stage-btn, .level-tab {
+    min-height: 44px;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 99px;
+    background: transparent;
+    color: #776a65;
+    box-shadow: none;
+  }
+  .stage-btn:hover, .level-tab:hover { box-shadow: none; background: rgba(255,243,168,.7); transform: none; }
+  .stage-btn:active, .level-tab:active { transform: none; box-shadow: none; }
+  .stage-btn.active, .level-tab.active {
+    color: var(--ink);
+    background: var(--pink);
+    box-shadow: 3px 3px 0 var(--ink);
+  }
+  .level-tab { flex-direction: column; align-items: center; }
+
+  .level-info, .progress {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+
+  .beat-note, .beat-row, .task-box, .animal-bar, .compose-bar {
+    background: #fff7dc;
+    border-radius: 18px 15px 20px 14px;
+    padding: 12px;
+    border: 3px solid var(--ink);
+    box-shadow: 4px 4px 0 rgba(33,27,28,.18);
+  }
   .beat-note {
-    background: #FFF0E8; border-radius: 18px; padding: 12px;
-    border: 3px solid #FFD166; margin-bottom: 12px;
-    display: flex; justify-content: center; align-items: center;
-    gap: 12px; min-height: 120px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    min-height: 120px;
   }
   .beat-row {
-    display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
-    gap: 6px; margin-bottom: 12px; padding: 10px;
-    background: #FFF0E8; border-radius: 18px; border: 3px solid #FFD166;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 8px;
+    margin-bottom: 12px;
     min-height: 110px;
   }
   .beat-item {
-    display: flex; flex-direction: column; align-items: center;
-    background: rgba(255,255,255,0.7); border: 3px solid transparent;
-    border-radius: 12px; padding: 6px 4px; transition: 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
+    border: 3px solid transparent;
+    border-radius: 14px;
+    padding: 6px 6px 8px;
+    transition: .2s;
   }
   .beat-item.current {
-    border-color: #FF6F91; background: #FFE3E8;
-    box-shadow: 0 0 10px rgba(255,111,145,0.5); transform: scale(1.05);
+    border-color: var(--ink);
+    background: #ffe3ee;
+    box-shadow: 3px 3px 0 var(--ink);
+    transform: translateY(-2px);
   }
-  .beat-item .beat-label { font-size: 0.7rem; font-weight: 700; color: #4A3B52; margin-top: 2px; }
+  .beat-item .beat-label { font-size: 0.7rem; font-weight: 800; color: var(--ink); margin-top: 2px; }
+
   .beat-keys {
-    display: flex; justify-content: center; align-items: center;
-    gap: 12px; margin: 10px auto 12px; flex-wrap: wrap;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 14px auto 12px;
+    flex-wrap: wrap;
   }
   .beat-key {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #FFF0B3, #FFD166 60%, #FFB347);
-    border: none; box-shadow: 0 6px 0 #D19A2E, 0 8px 16px rgba(0,0,0,0.15);
-    cursor: pointer; transition: 0.1s;
-    font-size: 1.6rem; font-weight: 900; color: #4A3B52;
-    display: flex; justify-content: center; align-items: center;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: var(--yellow);
+    border: 3px solid var(--ink);
+    box-shadow: 5px 5px 0 var(--ink);
+    cursor: pointer;
+    transition: .14s ease;
+    font-size: 1.55rem;
+    font-weight: 950;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  .beat-key:active { transform: translateY(3px); box-shadow: 0 3px 0 #D19A2E; }
-  .beat-key.pressed {
-    background: radial-gradient(circle at 30% 30%, #FFE9A8, #7ED9A8 70%, #5BC98A);
-    box-shadow: 0 3px 0 #4FA97A; transform: translateY(3px);
+  .beat-key:hover { transform: translate(-2px,-3px); box-shadow: 7px 7px 0 var(--ink); }
+  .beat-key:active, .beat-key.pressed {
+    transform: translate(3px,3px);
+    box-shadow: 1px 1px 0 var(--ink);
+    background: #9fe0b8;
   }
   .beat-key.wrong {
-    background: radial-gradient(circle at 30% 30%, #FFD0D0, #FF8A8A 70%, #E57373);
-    box-shadow: 0 3px 0 #C2555F; transform: translateY(3px);
+    background: #f6a8c6;
+    transform: translate(3px,3px);
+    box-shadow: 1px 1px 0 var(--ink);
   }
-  .beat-message { font-size: 0.9rem; font-weight: 800; color: #4A3B52; min-height: 24px; }
-  /* 认识时值：放大音符图标 */
-  .beat-note .animal-part svg { width: 110px; height: auto; }
+  .beat-message, .success-msg, .compose-status {
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: var(--pink-dark);
+    min-height: 24px;
+  }
+  .beat-note .animal-part img { width: 168px; height: 168px; object-fit: contain; border-radius: 22px; display: block; }
   .beat-note .note-part svg { width: 40px; height: auto; }
-  .beat-item .animal-icon svg { width: 72px; height: auto; }
+  .beat-item .animal-icon img { width: 92px; height: 92px; object-fit: contain; border-radius: 16px; display: block; }
   .beat-item .note-icon svg { width: 30px; height: auto; }
-
-  /* ========== 我是谁？ ========== */
-  .level-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
-  .level-tab {
-    flex: 1; border: none; background: #FFE3E8; color: #4A3B52;
-    font-size: 0.8rem; font-weight: 800; padding: 10px 2px;
-    border-radius: 14px; cursor: pointer; transition: 0.2s;
-    display: flex; flex-direction: column; align-items: center;
+  .animal-avatar {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    display: block;
+    background: #fff7dc;
   }
-  .level-tab.active { background: #FFD166; box-shadow: 0 2px 0 #D19A2E; }
+  .key-drop-feedback img, .drag-demo-ghost img { width: 48px; height: 48px; object-fit: cover; border-radius: 50%; border: 2px solid var(--ink); }
 
-  .song-select { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 8px; }
+  .song-select { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 10px; }
   .song-btn {
-    border: none; background: #FFF0E8; color: #4A3B52;
-    font-size: 0.75rem; font-weight: 700; padding: 6px 8px;
-    border-radius: 12px; cursor: pointer; transition: 0.2s;
-    border: 1px solid transparent;
+    background: #fff8dd;
+    padding: 6px 10px;
+    border-radius: 12px;
+    box-shadow: 3px 3px 0 var(--ink);
+    font-size: 0.75rem;
   }
-  .song-btn.active { background: #FFD166; box-shadow: 0 2px 0 #D19A2E; border-color: #D19A2E; }
+  .song-btn.active { background: var(--yellow); }
 
   .task-box {
-    background: #FFE3E8; border-radius: 16px; padding: 10px;
-    margin-bottom: 10px; font-size: 0.9rem; font-weight: 800; color: #4A3B52;
-    min-height: 60px; display: flex; justify-content: center; align-items: center;
-    gap: 4px; flex-wrap: wrap;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    font-weight: 850;
+    min-height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
   }
   .task-box .highlight {
-    background: #FFD166; border-radius: 8px; padding: 2px 6px; display: inline-block;
+    background: var(--yellow);
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 2px 7px;
+    display: inline-block;
   }
 
   .animal-bar {
-    display: flex; flex-wrap: wrap; justify-content: center;
-    gap: 6px; margin-bottom: 10px; padding: 8px;
-    background: #FFF0E8; border-radius: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 10px;
   }
   .drag-guide {
-    font-size: 0.85rem; font-weight: 800; color: #FF6F91;
-    margin: 0 0 8px; min-height: 22px;
+    font-size: 0.85rem;
+    font-weight: 850;
+    color: var(--pink-dark);
+    margin: 0 0 8px;
+    min-height: 22px;
   }
   .animal-item {
-    background: #fff; border: 2px solid transparent; border-radius: 12px;
-    padding: 4px 6px; cursor: grab; transition: 0.2s;
-    display: flex; flex-direction: column; align-items: center;
-    min-width: 50px; user-select: none; -webkit-user-select: none;
-    touch-action: none; position: relative;
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    padding: 8px 8px 6px;
+    cursor: grab;
+    transition: .14s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 54px;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    position: relative;
+    box-shadow: 3px 3px 0 rgba(33,27,28,.16);
   }
   .animal-item.draggable-hint {
     animation: animalFloat 1.4s ease-in-out infinite;
-    border-color: #FFD166;
+    background: #fff8db;
   }
   .animal-item .drag-badge {
-    position: absolute; top: -6px; right: -4px;
-    background: #FF6F91; color: #fff; font-size: 0.55rem; font-weight: 800;
-    border-radius: 8px; padding: 1px 4px; line-height: 1.2;
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    background: var(--pink);
+    color: var(--ink);
+    font-size: 0.55rem;
+    font-weight: 900;
+    border: 2px solid var(--ink);
+    border-radius: 8px;
+    padding: 1px 5px;
+    line-height: 1.2;
   }
   @keyframes animalFloat {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-4px); }
   }
   .animal-item:active { cursor: grabbing; }
-  .animal-item:hover { border-color: #FFD166; transform: translateY(-2px); }
-  .animal-item.selected { border-color: #FF6F91; background: #FFE3E8; box-shadow: 0 2px 0 #D96C89; }
+  .animal-item:hover { transform: translateY(-2px); background: #fff3a8; }
+  .animal-item.selected {
+    background: #ffe3ee;
+    box-shadow: 3px 3px 0 var(--ink);
+  }
   .animal-item.dragging { opacity: 0.4; }
-  .animal-item .animal-name { font-size: 0.7rem; font-weight: 700; color: #4A3B52; }
-  .animal-item .animal-key { font-size: 0.6rem; color: #999; font-weight: 700; }
-  .animal-item .animal-key .first-letter { font-size: 1.6em; font-weight: 900; color: #FF6F91; }
+  .animal-item .animal-name { font-size: 0.72rem; font-weight: 800; }
+  .animal-item .animal-key { font-size: 0.62rem; color: var(--muted); font-weight: 800; }
+  .animal-item .animal-key .first-letter { font-size: 1.6em; font-weight: 950; color: var(--pink-dark); }
   .key-drop-feedback {
-    position: absolute; pointer-events: none; z-index: 20;
+    position: absolute;
+    pointer-events: none;
+    z-index: 20;
     animation: dropPop 0.7s ease-out forwards;
   }
   @keyframes dropPop {
@@ -198,233 +487,309 @@
     100% { opacity: 0; transform: translate(-50%, -110%) scale(1); }
   }
   .drag-demo-ghost {
-    position: fixed; z-index: 9998; pointer-events: none;
+    position: fixed;
+    z-index: 9998;
+    pointer-events: none;
     transition: left 0.9s ease-in-out, top 0.9s ease-in-out, opacity 0.3s;
     opacity: 0.85;
   }
 
-  .melody-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+  .melody-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
   .melody-note {
-    width: 30px; height: 30px; background: #FFF0E8;
-    border-radius: 8px; display: flex; justify-content: center; align-items: center;
-    font-size: 0.9rem; font-weight: 800; color: #4A3B52;
-    border: 2px solid transparent;
+    width: 34px;
+    height: 34px;
+    background: #fff8dd;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    border: 2px solid var(--ink);
   }
   .melody-note.current {
-    border-color: #FF6F91; background: #FFD166;
-    transform: scale(1.1);
+    background: var(--yellow);
+    transform: scale(1.08);
+    box-shadow: 3px 3px 0 var(--ink);
   }
-  .melody-note.done { background: #C8E6C9; border-color: #7ED9A8; }
+  .melody-note.done { background: #9fe0b8; }
 
-  .keyboard-tip { font-size: 0.7rem; color: #888; margin: 6px 0; }
-  .success-msg { font-size: 0.9rem; font-weight: 800; color: #FF6F91; min-height: 24px; margin-top: 4px; }
-  .progress { color: #aaa; font-size: 0.7rem; font-weight: 700; margin-bottom: 6px; }
+  .keyboard-tip { font-size: 0.75rem; color: var(--muted); margin: 8px 0 4px; font-weight: 750; }
 
-  /* ========== 自己创作音乐 ========== */
   .compose-bars { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-  .compose-label { font-size: 0.85rem; font-weight: 800; color: #4A3B52; }
+  .compose-label { font-size: 0.85rem; font-weight: 850; }
   .compose-bar-btn {
-    border: none; background: #FFF0E8; color: #4A3B52; font-size: 0.85rem; font-weight: 800;
-    padding: 8px 14px; border-radius: 14px; cursor: pointer; transition: 0.2s;
+    background: #fff8dd;
+    padding: 8px 14px;
+    border-radius: 14px;
+    box-shadow: 3px 3px 0 var(--ink);
+    font-size: 0.85rem;
   }
-  .compose-bar-btn.active { background: #FFD166; box-shadow: 0 2px 0 #D19A2E; }
+  .compose-bar-btn.active { background: var(--yellow); }
   .compose-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-  .compose-bar { background: #FFF0E8; border-radius: 14px; padding: 8px; }
-  .compose-bar-label { font-size: 0.7rem; font-weight: 800; color: #999; margin-bottom: 4px; text-align: left; }
+  .compose-bar { padding: 10px; }
+  .compose-bar-label { font-size: 0.7rem; font-weight: 850; color: var(--muted); margin-bottom: 6px; text-align: left; }
   .compose-bar-row { display: flex; gap: 6px; justify-content: center; }
   .compose-cell {
-    width: 44px; height: 44px; border-radius: 10px; border: 2px dashed #E0C9A6;
-    background: rgba(255,255,255,0.7); font-size: 1rem; font-weight: 900; color: #4A3B52;
-    cursor: pointer; transition: 0.15s; display: flex; justify-content: center; align-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    border: 2px dashed rgba(33,27,28,.45);
+    background: #fff;
+    font-size: 1rem;
+    font-weight: 950;
+    cursor: pointer;
+    transition: .15s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  .compose-cell.filled { border-style: solid; border-color: #FFD166; background: #FFF0E8; }
-  .compose-cell.cursor { border-color: #FF6F91; box-shadow: 0 0 8px rgba(255,111,145,0.5); }
-  .compose-cell.playing { background: #FFD166; border-color: #FF6F91; transform: scale(1.08); }
+  .compose-cell.filled { border-style: solid; border-color: var(--ink); background: #fff8db; }
+  .compose-cell.cursor { box-shadow: 3px 3px 0 var(--ink); border-color: var(--pink-dark); border-style: solid; }
+  .compose-cell.playing { background: var(--yellow); border-color: var(--ink); transform: scale(1.08); }
   .compose-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap; }
   .compose-btn {
-    border: none; background: #FFE3E8; color: #4A3B52; font-size: 0.85rem; font-weight: 800;
-    padding: 10px 16px; border-radius: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 3px 0 #E0A9B8;
+    background: #fff;
+    padding: 10px 16px;
+    border-radius: 15px 12px 17px 13px;
+    box-shadow: 4px 4px 0 var(--ink);
+    font-size: 0.85rem;
   }
-  .compose-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #E0A9B8; }
-  .compose-btn.compose-play { background: #FFD166; box-shadow: 0 3px 0 #D19A2E; }
-  .compose-btn.compose-play:active { box-shadow: 0 1px 0 #D19A2E; }
-  .compose-status { font-size: 0.8rem; font-weight: 800; color: #FF6F91; min-height: 20px; }
+  .compose-btn.compose-play { background: var(--yellow); }
 
+  .keyboard-wrap {
+    margin-top: 6px;
+    padding: 10px 8px 4px;
+    border: 3px solid var(--ink);
+    border-radius: 18px 14px 20px 16px;
+    background: #fff7dc;
+    box-shadow: 4px 4px 0 rgba(33,27,28,.16);
+  }
   svg .key-white { cursor: pointer; transition: 0.1s; }
-  svg .key-white:hover { fill: #FFE3E8; }
-  svg .key-white.correct { fill: #7ED9A8; }
-  svg .key-white.wrong { fill: #FFB3B3; }
+  svg .key-white:hover { fill: #ffe9d8; }
+  svg .key-white.correct { fill: #9fe0b8; }
+  svg .key-white.wrong { fill: #f6a8c6; }
   svg .key-white.shake { animation: shake 0.4s; }
-  /* 作曲模式：琴键上的小动物图标 */
   .key-animal { display: none; pointer-events: none; }
   #keyboardSvg.show-animals .key-animal { display: block; }
-  .key-animal svg { width: 40px; height: 40px; }
+  .key-animal img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: #fff7dc;
+  }
   @keyframes shake {
     0%,100% { transform: translateX(0); }
     25% { transform: translateX(-3px); }
     75% { transform: translateX(3px); }
   }
-
-  /* ========== 响应式适配 ========== */
-  /* 手机（窄屏） */
-  @media (max-width: 480px) {
-    body { padding: 6px; align-items: flex-start; }
-    .app {
-      padding: 12px;
-      border-radius: 20px;
-      border-width: 4px;
-      margin: 5px auto;
-    }
-    h2 { font-size: 1.1rem; }
-    .project-card { padding: 14px 14px; gap: 10px; }
-    .project-card .project-icon { font-size: 1.8rem; }
-    .project-card .project-title { font-size: 1.05rem; }
-    .level-tab { font-size: 0.7rem; padding: 8px 1px; }
-    .level-tab .en { font-size: 0.55rem; }
-    .task-box { font-size: 0.8rem; min-height: 55px; }
-    .beat-key { width: 54px; height: 54px; font-size: 1.3rem; }
-    .beat-keys { gap: 8px; }
-    .animal-item { min-width: 42px; padding: 3px 4px; }
-    .animal-item svg { width: 30px !important; height: 30px !important; }
-    .melody-note { width: 26px; height: 26px; font-size: 0.75rem; }
-    .keyboard-tip { font-size: 0.6rem; }
+  @keyframes star-float {
+    0% { opacity: 0; transform: translateY(12px) scale(.5) rotate(0); }
+    35% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-22px) scale(1.1) rotate(28deg); }
   }
 
-  /* iPad / 平板（中等屏及以上） */
-  @media (min-width: 481px) {
-    .app { max-width: 880px; padding: 28px; }
-    h2 { font-size: 2rem; }
-    .project-card { padding: 20px 24px; gap: 16px; }
-    .project-card .project-icon { font-size: 2.6rem; }
-    .project-card .project-title { font-size: 1.5rem; }
-    .stage-btn { font-size: 1.05rem; }
-    .level-tab { font-size: 1rem; }
-    .level-tab .en { font-size: 0.7rem; }
-    .task-box { font-size: 1.15rem; }
+  .site-footer {
+    width: min(980px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 8px 0 22px;
+    display: flex;
+    justify-content: center;
+    gap: 9px;
+    border-top: 2px dashed rgba(33,27,28,.25);
+    color: #776864;
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  @media (max-width: 700px) {
+    .topbar { width: calc(100% - 24px); height: 68px; }
+    .brand { font-size: 17px; }
+    .brand-mark { width: 35px; height: 35px; }
+    .hero { width: calc(100% - 24px); }
+    .game-card {
+      padding: 16px 14px 20px;
+      border-radius: 24px 19px 27px 21px;
+      box-shadow: 6px 7px 0 var(--ink);
+    }
+    .home-hero { grid-template-columns: 1fr; }
+    .illustration-stage { aspect-ratio: 16 / 11; }
+    .page-title { font-size: 1.45rem; }
+    .project-card { padding: 12px 12px; gap: 10px; min-height: 80px; }
+    .project-card .project-icon { width: 46px; height: 46px; flex-basis: 46px; font-size: 22px; }
+    .project-card .project-title { font-size: 1.05rem; }
+    .stage-select, .level-tabs { border-radius: 22px; }
+    .level-tab { font-size: 0.72rem; padding: 7px 8px; }
+    .level-tab .en { font-size: 0.52rem; }
+    .task-box { font-size: 0.82rem; min-height: 55px; }
+    .beat-key { width: 56px; height: 56px; font-size: 1.3rem; }
+    .animal-item { min-width: 44px; padding: 4px 5px; }
+    .animal-item svg, .animal-item img, .animal-item .animal-avatar { width: 34px !important; height: 34px !important; }
+    .melody-note { width: 28px; height: 28px; font-size: 0.75rem; }
+  }
+
+  @media (min-width: 701px) {
+    .game-card { padding: 26px 28px 30px; }
+    .stage-btn, .level-tab { font-size: 0.95rem; }
+    .task-box { font-size: 1.1rem; }
     .animal-item { min-width: 76px; padding: 8px 10px; }
-    .animal-item svg { width: 48px !important; height: 48px !important; }
+    .animal-item svg, .animal-item img, .animal-item .animal-avatar { width: 56px !important; height: 56px !important; }
     .animal-item .animal-name { font-size: 0.95rem; }
-    .animal-item .animal-key { font-size: 0.8rem; }
     .melody-note { width: 42px; height: 42px; font-size: 1.1rem; }
-    .beat-key { width: 88px; height: 88px; font-size: 2rem; }
-    .keyboard-tip { font-size: 0.85rem; }
-    .success-msg { font-size: 1.1rem; }
+    .beat-key { width: 84px; height: 84px; font-size: 2rem; }
+    .success-msg, .beat-message { font-size: 1.05rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+    }
   }
 </style>
+
 </head>
 <body>
-<div class="app">
-  <h2>🎵 乐理小游戏 <span class="en">Music Theory Game</span></h2>
-  <!-- 大项目入口：卡片层 -->
-  <div class="project-select" id="projectSelect">
-    <div class="project-grid">
-      <button class="project-card" id="projectBeat" data-project="beat">
-        <span class="project-icon">🎵</span>
-        <span class="project-body">
-          <span class="project-title">节拍游戏 <span class="en">Beat Game</span></span>
-          <span class="project-sub">认识时值 · 拍出节奏</span>
-        </span>
-      </button>
-      <button class="project-card" id="projectKeyboard" data-project="keyboard">
-        <span class="project-icon">🐸</span>
-        <span class="project-body">
-          <span class="project-title">我是谁？ <span class="en">Who Am I?</span></span>
-          <span class="project-sub">认识音名 · 玩转钢琴</span>
-        </span>
-      </button>
-    </div>
-  </div>
+<main class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#" id="homeBrand" aria-label="乐理小游戏首页">
+      <span class="brand-mark" aria-hidden="true">🐾</span>
+      <span>乐理小游戏</span>
+      <em>V1</em>
+    </a>
+  </header>
 
-  <!-- 节拍游戏面板 -->
-  <div class="panel" id="beatPanel">
-    <div class="sub-nav">
-      <button class="back-btn" data-back>← 项目</button>
-      <span class="sub-nav-title">🎵 节拍游戏</span>
-    </div>
-    <div class="stage-select">
-      <button class="stage-btn active" data-stage="learn">认识时值 <span class="en">Learn Values</span></button>
-      <button class="stage-btn" data-stage="random">随机排列 <span class="en">Random Order</span></button>
-    </div>
-    <div class="level-info" id="beatLevelInfo"></div>
-    <div id="beatDisplayArea"></div>
-    <div class="beat-keys" id="beatKeys">
-      <button class="beat-key" data-n="1">1</button>
-      <button class="beat-key" data-n="2">2</button>
-      <button class="beat-key" data-n="3">3</button>
-      <button class="beat-key" data-n="4">4</button>
-    </div>
-    <div class="beat-message" id="beatMsg"></div>
-  </div>
+  <section class="hero">
+    <article class="game-card app">
+      <p class="page-kicker">MUSIC THEORY GAME</p>
+      <h1 class="page-title">🎵 乐理小游戏</h1>
+      <p class="page-lead">认识节拍、记住音名，再把儿歌弹出来。每一次练习，都是小小的成就。</p>
 
-  <!-- 我是谁？三关面板 -->
-  <div class="panel" id="keyboardPanel">
-    <div class="sub-nav">
-      <button class="back-btn" data-back>← 项目</button>
-      <span class="sub-nav-title">🐸 我是谁？</span>
-    </div>
-    <div class="level-tabs">
-      <button class="level-tab active" data-kb-level="1">认识音名 <span class="en">Learn Notes</span></button>
-      <button class="level-tab" data-kb-level="2">帮我找位置 <span class="en">Find Position</span></button>
-      <button class="level-tab" data-kb-level="3">旋律游戏 <span class="en">Melody Game</span></button>
-      <button class="level-tab" data-kb-level="4">自己创作 <span class="en">Compose</span></button>
-    </div>
-
-    <div id="kbTaskArea">
-      <div class="song-select" id="songSelect" style="display:none;"></div>
-      <div class="progress" id="progress"></div>
-      <div class="task-box" id="taskBox"></div>
-      <div class="drag-guide" id="dragGuide"></div>
-      <div class="melody-row" id="melodyRow" style="display:none;"></div>
-      <div class="animal-bar" id="animalBar"></div>
-      <div id="composeArea" style="display:none;">
-        <div class="compose-bars">
-          <span class="compose-label">选择小节数：</span>
-          <button class="compose-bar-btn active" data-bars="4">4 小节</button>
-          <button class="compose-bar-btn" data-bars="6">6 小节</button>
-          <button class="compose-bar-btn" data-bars="8">8 小节</button>
+      <div class="project-select" id="projectSelect">
+        <div class="home-hero">
+          <div class="illustration-stage">
+            <img class="scene-frame" src="assets/kitty-home.png" alt="粉色小猫坐在钢琴前">
+            <div class="star-melody" aria-hidden="true"><i>★</i><i>✦</i><i>★</i></div>
+          </div>
+          <div class="project-grid">
+            <button class="project-card" id="projectBeat" data-project="beat">
+              <span class="project-icon" aria-hidden="true"><img src="assets/icon-beat.png" alt=""></span>
+              <span class="project-body">
+                <span class="project-title">节拍游戏 <span class="en">Beat Game</span></span>
+                <span class="project-sub">认识时值 · 拍出节奏</span>
+              </span>
+            </button>
+            <button class="project-card" id="projectKeyboard" data-project="keyboard">
+              <span class="project-icon" aria-hidden="true"><img src="assets/beat-whole.png" alt=""></span>
+              <span class="project-body">
+                <span class="project-title">我是谁？ <span class="en">Who Am I?</span></span>
+                <span class="project-sub">认识音名 · 玩转钢琴</span>
+              </span>
+            </button>
+          </div>
         </div>
-        <div class="compose-grid" id="composeGrid"></div>
-        <div class="compose-controls">
-          <button class="compose-btn" id="composeBack">← 后退</button>
-          <button class="compose-btn" id="composeClear">清空</button>
-          <button class="compose-btn compose-play" id="composePlay">▶ AI 演奏</button>
-        </div>
-        <div class="compose-status" id="composeStatus"></div>
       </div>
-    </div>
 
-    <svg id="keyboardSvg" viewBox="0 0 560 180" style="width:100%; height:auto;">
-      <rect x="10"  y="20" width="70" height="140" rx="4" class="key-white" data-key="C4" fill="#fff" stroke="#333" stroke-width="2"/>
-      <rect x="85"  y="20" width="70" height="140" rx="4" class="key-white" data-key="D"  fill="#fff" stroke="#333" stroke-width="2"/>
-      <rect x="160" y="20" width="70" height="140" rx="4" class="key-white" data-key="E"  fill="#fff" stroke="#333" stroke-width="2"/>
-      <rect x="235" y="20" width="70" height="140" rx="4" class="key-white" data-key="F"  fill="#fff" stroke="#333" stroke-width="2"/>
-      <rect x="310" y="20" width="70" height="140" rx="4" class="key-white" data-key="G"  fill="#fff" stroke="#333" stroke-width="2"/>
-      <rect x="385" y="20" width="70" height="140" rx="4" class="key-white" data-key="A"  fill="#fff" stroke="#333" stroke-width="2"/>
-      <rect x="460" y="20" width="70" height="140" rx="4" class="key-white" data-key="B"  fill="#fff" stroke="#333" stroke-width="2"/>
-      <rect x="55"  y="20" width="45" height="85" rx="5" fill="#333"/>
-      <rect x="130" y="20" width="45" height="85" rx="5" fill="#333"/>
-      <rect x="280" y="20" width="45" height="85" rx="5" fill="#333"/>
-      <rect x="355" y="20" width="45" height="85" rx="5" fill="#333"/>
-      <rect x="430" y="20" width="45" height="85" rx="5" fill="#333"/>
-      <foreignObject class="key-animal" data-animal="cat" x="20" y="106" width="50" height="46"></foreignObject>
-      <foreignObject class="key-animal" data-animal="dog" x="95" y="106" width="50" height="46"></foreignObject>
-      <foreignObject class="key-animal" data-animal="elephant" x="170" y="106" width="50" height="46"></foreignObject>
-      <foreignObject class="key-animal" data-animal="fox" x="245" y="106" width="50" height="46"></foreignObject>
-      <foreignObject class="key-animal" data-animal="goat" x="320" y="106" width="50" height="46"></foreignObject>
-      <foreignObject class="key-animal" data-animal="ant" x="395" y="106" width="50" height="46"></foreignObject>
-      <foreignObject class="key-animal" data-animal="bear" x="470" y="106" width="50" height="46"></foreignObject>
-      <text x="45" y="175" font-size="18" font-weight="bold" fill="#FF6F91" text-anchor="middle">C</text>
-      <text x="120" y="175" font-size="16" fill="#888" text-anchor="middle">D</text>
-      <text x="195" y="175" font-size="16" fill="#888" text-anchor="middle">E</text>
-      <text x="270" y="175" font-size="16" fill="#888" text-anchor="middle">F</text>
-      <text x="345" y="175" font-size="16" fill="#888" text-anchor="middle">G</text>
-      <text x="420" y="175" font-size="16" fill="#888" text-anchor="middle">A</text>
-      <text x="495" y="175" font-size="16" fill="#888" text-anchor="middle">B</text>
-    </svg>
-    <div class="keyboard-tip" id="keyboardTip">点选小动物，再点对应琴键 <span class="en">Select an animal, then tap its key</span></div>
-    <div class="success-msg" id="successMsg"></div>
-  </div>
-</div>
+      <div class="panel" id="beatPanel">
+        <div class="sub-nav">
+          <button class="back-btn" data-back>← 项目</button>
+          <span class="sub-nav-title">🎵 节拍游戏</span>
+        </div>
+        <div class="stage-select">
+          <button class="stage-btn active" data-stage="learn">认识时值 <span class="en">Learn Values</span></button>
+          <button class="stage-btn" data-stage="random">随机排列 <span class="en">Random Order</span></button>
+        </div>
+        <div class="level-info" id="beatLevelInfo"></div>
+        <div id="beatDisplayArea"></div>
+        <div class="beat-keys" id="beatKeys">
+          <button class="beat-key" data-n="1">1</button>
+          <button class="beat-key" data-n="2">2</button>
+          <button class="beat-key" data-n="3">3</button>
+          <button class="beat-key" data-n="4">4</button>
+        </div>
+        <div class="beat-message" id="beatMsg"></div>
+      </div>
+
+      <div class="panel" id="keyboardPanel">
+        <div class="sub-nav">
+          <button class="back-btn" data-back>← 项目</button>
+          <span class="sub-nav-title">🐸 我是谁？</span>
+        </div>
+        <div class="level-tabs">
+          <button class="level-tab active" data-kb-level="1">认识音名 <span class="en">Learn Notes</span></button>
+          <button class="level-tab" data-kb-level="2">帮我找位置 <span class="en">Find Position</span></button>
+          <button class="level-tab" data-kb-level="3">旋律游戏 <span class="en">Melody Game</span></button>
+          <button class="level-tab" data-kb-level="4">自己创作 <span class="en">Compose</span></button>
+        </div>
+
+        <div id="kbTaskArea">
+          <div class="song-select" id="songSelect" style="display:none;"></div>
+          <div class="progress" id="progress"></div>
+          <div class="task-box" id="taskBox"></div>
+          <div class="drag-guide" id="dragGuide"></div>
+          <div class="melody-row" id="melodyRow" style="display:none;"></div>
+          <div class="animal-bar" id="animalBar"></div>
+          <div id="composeArea" style="display:none;">
+            <div class="compose-bars">
+              <span class="compose-label">选择小节数：</span>
+              <button class="compose-bar-btn active" data-bars="4">4 小节</button>
+              <button class="compose-bar-btn" data-bars="6">6 小节</button>
+              <button class="compose-bar-btn" data-bars="8">8 小节</button>
+            </div>
+            <div class="compose-grid" id="composeGrid"></div>
+            <div class="compose-controls">
+              <button class="compose-btn" id="composeBack">← 后退</button>
+              <button class="compose-btn" id="composeClear">清空</button>
+              <button class="compose-btn compose-play" id="composePlay">▶ AI 演奏</button>
+            </div>
+            <div class="compose-status" id="composeStatus"></div>
+          </div>
+        </div>
+
+        <div class="keyboard-wrap">
+          <svg id="keyboardSvg" viewBox="0 0 560 180" style="width:100%; height:auto;">
+            <rect x="10"  y="20" width="70" height="140" rx="4" class="key-white" data-key="C4" fill="#fffdf7" stroke="#211b1c" stroke-width="3"/>
+            <rect x="85"  y="20" width="70" height="140" rx="4" class="key-white" data-key="D"  fill="#fffdf7" stroke="#211b1c" stroke-width="3"/>
+            <rect x="160" y="20" width="70" height="140" rx="4" class="key-white" data-key="E"  fill="#fffdf7" stroke="#211b1c" stroke-width="3"/>
+            <rect x="235" y="20" width="70" height="140" rx="4" class="key-white" data-key="F"  fill="#fffdf7" stroke="#211b1c" stroke-width="3"/>
+            <rect x="310" y="20" width="70" height="140" rx="4" class="key-white" data-key="G"  fill="#fffdf7" stroke="#211b1c" stroke-width="3"/>
+            <rect x="385" y="20" width="70" height="140" rx="4" class="key-white" data-key="A"  fill="#fffdf7" stroke="#211b1c" stroke-width="3"/>
+            <rect x="460" y="20" width="70" height="140" rx="4" class="key-white" data-key="B"  fill="#fffdf7" stroke="#211b1c" stroke-width="3"/>
+            <rect x="55"  y="20" width="45" height="85" rx="5" fill="#211b1c"/>
+            <rect x="130" y="20" width="45" height="85" rx="5" fill="#211b1c"/>
+            <rect x="280" y="20" width="45" height="85" rx="5" fill="#211b1c"/>
+            <rect x="355" y="20" width="45" height="85" rx="5" fill="#211b1c"/>
+            <rect x="430" y="20" width="45" height="85" rx="5" fill="#211b1c"/>
+            <foreignObject class="key-animal" data-animal="cat" x="20" y="106" width="50" height="46"></foreignObject>
+            <foreignObject class="key-animal" data-animal="dog" x="95" y="106" width="50" height="46"></foreignObject>
+            <foreignObject class="key-animal" data-animal="elephant" x="170" y="106" width="50" height="46"></foreignObject>
+            <foreignObject class="key-animal" data-animal="fox" x="245" y="106" width="50" height="46"></foreignObject>
+            <foreignObject class="key-animal" data-animal="goat" x="320" y="106" width="50" height="46"></foreignObject>
+            <foreignObject class="key-animal" data-animal="ant" x="395" y="106" width="50" height="46"></foreignObject>
+            <foreignObject class="key-animal" data-animal="bear" x="470" y="106" width="50" height="46"></foreignObject>
+            <text x="45" y="175" font-size="18" font-weight="bold" fill="#c74f7d" text-anchor="middle">C</text>
+            <text x="120" y="175" font-size="16" fill="#766562" text-anchor="middle">D</text>
+            <text x="195" y="175" font-size="16" fill="#766562" text-anchor="middle">E</text>
+            <text x="270" y="175" font-size="16" fill="#766562" text-anchor="middle">F</text>
+            <text x="345" y="175" font-size="16" fill="#766562" text-anchor="middle">G</text>
+            <text x="420" y="175" font-size="16" fill="#766562" text-anchor="middle">A</text>
+            <text x="495" y="175" font-size="16" fill="#766562" text-anchor="middle">B</text>
+          </svg>
+        </div>
+        <div class="keyboard-tip" id="keyboardTip">点选小动物，再点对应琴键 <span class="en">Select an animal, then tap its key</span></div>
+        <div class="success-msg" id="successMsg"></div>
+      </div>
+    </article>
+  </section>
+
+  <footer class="site-footer">
+    <span>把每一个音符，都变成小小的成就</span>
+    <span>♪</span>
+  </footer>
+</main>
 
 <script>
 // ========== 音频系统 ==========
@@ -477,10 +842,10 @@ function speakNumber(n) {
 
 // ========== 节拍游戏 ==========
 const beatNotePool = {
-  quarter: { name:'四分音符', taps:1, animalSvg:`<svg width="50" height="42" viewBox="0 0 90 70"><path d="M 32 38 Q 58 32 72 16 Q 62 38 78 48 Q 56 40 32 44 Z" fill="#333"/><ellipse cx="26" cy="38" rx="20" ry="16" fill="#333"/><circle cx="19" cy="32" r="3" fill="#fff"/><circle cx="33" cy="32" r="3" fill="#fff"/><circle cx="12" cy="43" r="4" fill="#FF6F91" opacity="0.7"/><circle cx="40" cy="43" r="4" fill="#FF6F91" opacity="0.7"/></svg>`, noteSvg:`<svg width="14" height="34" viewBox="0 0 20 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#333"/><rect x="14" y="6" width="3" height="28" fill="#333"/></svg>` },
-  half: { name:'二分音符', taps:2, animalSvg:`<svg width="50" height="42" viewBox="0 0 90 70"><path d="M 32 38 Q 58 32 72 16 Q 62 38 78 48 Q 56 40 32 44 Z" fill="#333"/><ellipse cx="26" cy="38" rx="20" ry="16" fill="#fff" stroke="#333" stroke-width="3"/><circle cx="19" cy="32" r="3" fill="#333"/><circle cx="33" cy="32" r="3" fill="#333"/><circle cx="12" cy="43" r="4" fill="#FF6F91" opacity="0.8"/><circle cx="40" cy="43" r="4" fill="#FF6F91" opacity="0.8"/><path d="M 20 44 Q 26 48 32 44" stroke="#333" stroke-width="2" fill="none"/></svg>`, noteSvg:`<svg width="14" height="34" viewBox="0 0 20 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#fff" stroke="#333" stroke-width="2.5"/><rect x="14" y="6" width="3" height="28" fill="#333"/></svg>` },
-  dottedHalf: { name:'附点二分音符', taps:3, animalSvg:`<svg width="50" height="42" viewBox="0 0 90 70"><path d="M 32 38 Q 58 32 72 16 Q 62 38 78 48 Q 56 40 32 44 Z" fill="#333"/><ellipse cx="26" cy="38" rx="20" ry="16" fill="#fff" stroke="#333" stroke-width="3"/><circle cx="19" cy="32" r="3" fill="#333"/><circle cx="33" cy="32" r="3" fill="#333"/><path d="M 20 44 Q 26 48 32 44" stroke="#333" stroke-width="2" fill="none"/><circle cx="37" cy="41" r="3.5" fill="#333"/></svg>`, noteSvg:`<svg width="20" height="34" viewBox="0 0 28 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#fff" stroke="#333" stroke-width="2.5"/><rect x="14" y="6" width="3" height="28" fill="#333"/><circle cx="22" cy="36" r="4" fill="#333"/></svg>` },
-  whole: { name:'全音符', taps:4, animalSvg:`<svg width="50" height="46" viewBox="0 0 90 80"><ellipse cx="45" cy="68" rx="38" ry="10" fill="#7ED9A8" stroke="#333" stroke-width="2"/><ellipse cx="45" cy="48" rx="24" ry="20" fill="#8EE5B1" stroke="#333" stroke-width="2"/><circle cx="30" cy="32" r="12" fill="#8EE5B1" stroke="#333" stroke-width="2"/><circle cx="60" cy="32" r="12" fill="#8EE5B1" stroke="#333" stroke-width="2"/><circle cx="32" cy="33" r="5" fill="#333"/><circle cx="58" cy="33" r="5" fill="#333"/><circle cx="35" cy="31" r="2" fill="#fff"/><circle cx="61" cy="31" r="2" fill="#fff"/><path d="M 34 52 Q 45 60 56 52" stroke="#333" stroke-width="2" fill="none"/><circle cx="25" cy="46" r="5" fill="#FF6F91" opacity="0.8"/><circle cx="65" cy="46" r="5" fill="#FF6F91" opacity="0.8"/></svg>`, noteSvg:`<svg width="16" height="28" viewBox="0 0 24 36"><ellipse cx="12" cy="22" rx="9" ry="7" fill="#fff" stroke="#333" stroke-width="2.5"/></svg>` }
+  quarter: { name:'四分音符', taps:1, animalSvg:`<img src="assets/beat-quarter.png" alt="四分音符">`, noteSvg:`<svg width="14" height="34" viewBox="0 0 20 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#211b1c"/><rect x="14" y="6" width="3" height="28" fill="#211b1c"/></svg>` },
+  half: { name:'二分音符', taps:2, animalSvg:`<img src="assets/beat-half.png" alt="二分音符">`, noteSvg:`<svg width="14" height="34" viewBox="0 0 20 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#fffdf7" stroke="#211b1c" stroke-width="2.5"/><rect x="14" y="6" width="3" height="28" fill="#211b1c"/></svg>` },
+  dottedHalf: { name:'附点二分音符', taps:3, animalSvg:`<img src="assets/beat-dotted-half.png" alt="附点二分音符">`, noteSvg:`<svg width="20" height="34" viewBox="0 0 28 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#fffdf7" stroke="#211b1c" stroke-width="2.5"/><rect x="14" y="6" width="3" height="28" fill="#211b1c"/><circle cx="22" cy="36" r="4" fill="#211b1c"/></svg>` },
+  whole: { name:'全音符', taps:4, animalSvg:`<img src="assets/beat-whole.png" alt="全音符">`, noteSvg:`<svg width="16" height="28" viewBox="0 0 24 36"><ellipse cx="12" cy="22" rx="9" ry="7" fill="#fffdf7" stroke="#211b1c" stroke-width="2.5"/></svg>` }
 };
 function buildLearnQuestions() {
   const seq = ['quarter','half','dottedHalf','whole'];
@@ -580,13 +945,13 @@ document.querySelectorAll('#beatPanel .stage-btn').forEach(btn=>{
 
 // ========== 我是谁？动物资料 ==========
 const animalData = {
-  cat: { key:'C4', name:'小猫', letter:'C', en:'Cat', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><polygon points="12,12 20,20 8,20" fill="#FF9838" stroke="#2D3A5C" stroke-width="2"/><polygon points="38,12 30,20 42,20" fill="#FF9838" stroke="#2D3A5C" stroke-width="2"/><circle cx="25" cy="28" r="17" fill="#FFB347" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="19" cy="25" rx="3" ry="4" fill="#2D3A5C"/><ellipse cx="31" cy="25" rx="3" ry="4" fill="#2D3A5C"/><circle cx="25" cy="30" r="2" fill="#FF6F91"/><circle cx="14" cy="31" r="3.5" fill="#FF6F91" opacity="0.5"/><circle cx="36" cy="31" r="3.5" fill="#FF6F91" opacity="0.5"/></svg>` },
-  dog: { key:'D', name:'小狗', letter:'D', en:'Dog', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><ellipse cx="12" cy="15" rx="6" ry="9" fill="#8B5E3C" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="38" cy="15" rx="6" ry="9" fill="#8B5E3C" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="28" rx="18" ry="17" fill="#D4A574" stroke="#2D3A5C" stroke-width="2"/><circle cx="19" cy="25" r="3" fill="#2D3A5C"/><circle cx="31" cy="25" r="3" fill="#2D3A5C"/><ellipse cx="25" cy="30" rx="3.5" ry="2.5" fill="#4A3B52"/><ellipse cx="25" cy="37" rx="3" ry="3.5" fill="#FF6F91"/></svg>` },
-  elephant: { key:'E', name:'小象', letter:'E', en:'Elephant', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><ellipse cx="10" cy="22" rx="9" ry="11" fill="#90A4AE" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="10" cy="22" rx="5" ry="7" fill="#CFD8DC"/><ellipse cx="40" cy="22" rx="9" ry="11" fill="#90A4AE" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="40" cy="22" rx="5" ry="7" fill="#CFD8DC"/><circle cx="25" cy="24" r="17" fill="#B0BEC5" stroke="#2D3A5C" stroke-width="2"/><path d="M 22 36 Q 20 48 26 46 Q 32 46 30 38" fill="#B0BEC5" stroke="#2D3A5C" stroke-width="2"/><circle cx="19" cy="21" r="3" fill="#2D3A5C"/><circle cx="31" cy="21" r="3" fill="#2D3A5C"/><circle cx="20" cy="20" r="1.2" fill="#fff"/><circle cx="32" cy="20" r="1.2" fill="#fff"/></svg>` },
-  fox: { key:'F', name:'狐狸', letter:'F', en:'Fox', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><polygon points="6,20 18,8 22,18" fill="#FF6F00" stroke="#2D3A5C" stroke-width="2"/><polygon points="44,20 32,8 28,18" fill="#FF6F00" stroke="#2D3A5C" stroke-width="2"/><circle cx="25" cy="28" r="16" fill="#FF8A65" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="34" rx="8" ry="7" fill="#FFE3E8"/><circle cx="19" cy="24" r="3" fill="#2D3A5C"/><circle cx="31" cy="24" r="3" fill="#2D3A5C"/><circle cx="25" cy="30" r="2" fill="#2D3A5C"/></svg>` },
-  goat: { key:'G', name:'山羊', letter:'G', en:'Goat', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><path d="M 14 14 Q 6 8 12 2 Q 20 4 18 14" fill="#D7CCC8" stroke="#2D3A5C" stroke-width="2"/><path d="M 36 14 Q 44 8 38 2 Q 30 4 32 14" fill="#D7CCC8" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="28" rx="15" ry="17" fill="#F5F5DC" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="19" cy="25" rx="3" ry="3.5" fill="#2D3A5C"/><ellipse cx="31" cy="25" rx="3" ry="3.5" fill="#2D3A5C"/><ellipse cx="25" cy="32" rx="4" ry="2.5" fill="#FFB3C6"/></svg>` },
-  ant: { key:'A', name:'蚂蚁', letter:'A', en:'Ant', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><path d="M 20 12 Q 14 2 8 4" stroke="#2D3A5C" stroke-width="2" fill="none"/><path d="M 30 12 Q 36 2 42 4" stroke="#2D3A5C" stroke-width="2" fill="none"/><circle cx="25" cy="16" r="8" fill="#5D4037" stroke="#2D3A5C" stroke-width="2"/><circle cx="21" cy="14" r="2.5" fill="#fff"/><circle cx="29" cy="14" r="2.5" fill="#fff"/><ellipse cx="25" cy="26" rx="6" ry="4" fill="#5D4037" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="38" rx="10" ry="7" fill="#5D4037" stroke="#2D3A5C" stroke-width="2"/></svg>` },
-  bear: { key:'B', name:'小熊', letter:'B', en:'Bear', svg:`<svg viewBox="0 0 50 50" width="32" height="32"><circle cx="14" cy="14" r="8" fill="#A97142" stroke="#2D3A5C" stroke-width="2"/><circle cx="36" cy="14" r="8" fill="#A97142" stroke="#2D3A5C" stroke-width="2"/><circle cx="25" cy="28" r="17" fill="#A97142" stroke="#2D3A5C" stroke-width="2"/><ellipse cx="25" cy="33" rx="7" ry="5" fill="#FFE3E8"/><circle cx="19" cy="24" r="3" fill="#2D3A5C"/><circle cx="31" cy="24" r="3" fill="#2D3A5C"/><ellipse cx="25" cy="30" rx="3" ry="2.5" fill="#2D3A5C"/></svg>` }
+  cat: { key:'C4', name:'小猫', letter:'C', en:'Cat', svg:`<img class="animal-avatar" src="assets/animal-cat.png" alt="小猫">` },
+  dog: { key:'D', name:'小狗', letter:'D', en:'Dog', svg:`<img class="animal-avatar" src="assets/animal-dog.png" alt="小狗">` },
+  elephant: { key:'E', name:'小象', letter:'E', en:'Elephant', svg:`<img class="animal-avatar" src="assets/animal-elephant.png" alt="小象">` },
+  fox: { key:'F', name:'狐狸', letter:'F', en:'Fox', svg:`<img class="animal-avatar" src="assets/animal-fox.png" alt="狐狸">` },
+  goat: { key:'G', name:'山羊', letter:'G', en:'Goat', svg:`<img class="animal-avatar" src="assets/animal-goat.png" alt="山羊">` },
+  ant: { key:'A', name:'蚂蚁', letter:'A', en:'Ant', svg:`<img class="animal-avatar" src="assets/animal-ant.png" alt="蚂蚁">` },
+  bear: { key:'B', name:'小熊', letter:'B', en:'Bear', svg:`<img class="animal-avatar" src="assets/animal-bear.png" alt="小熊">` }
 };
 
 // ========== 多首儿歌 ==========
@@ -749,10 +1114,10 @@ function playDragDemo() {
 }
 
 function highlightKey(keyName) {
-  keys.forEach(k => { k.setAttribute('fill', '#fff'); k.classList.remove('correct', 'wrong', 'shake'); });
+  keys.forEach(k => { k.setAttribute('fill', '#fffdf7'); k.classList.remove('correct', 'wrong', 'shake'); });
   if (!keyName) return;
   const target = document.querySelector(`.key-white[data-key="${keyName}"]`);
-  if (target) target.setAttribute('fill', '#FFD166');
+  if (target) target.setAttribute('fill', '#f7c64d');
 }
 
 function renderTask() {
@@ -906,7 +1271,7 @@ function handlePlace(animalKey, keyElement) {
   if (keyElement.dataset.key === currentTask.key) {
     isBusy = true;
     keyElement.classList.add('correct');
-    keyElement.setAttribute('fill', '#7ED9A8');
+    keyElement.setAttribute('fill', '#9fe0b8');
     showDropFeedback(animalKey, keyElement);
     playBeep(880, 0.15); kbSetTimeout(() => playBeep(1100, 0.18), 180);
     successMsg.innerHTML = `✅ 匹配成功！${a.name}放到了 ${keyLabel} 键 <span class="en">Match! ${a.en} on ${keyLabel}</span>`;
@@ -942,12 +1307,12 @@ function handlePlace(animalKey, keyElement) {
     }, 0);
   } else {
     keyElement.classList.add('wrong', 'shake');
-    keyElement.setAttribute('fill', '#FFB3B3');
+    keyElement.setAttribute('fill', '#f6a8c6');
     playBeep(200, 0.25);
     successMsg.innerHTML = `❌ 琴键不对：${a.name}要放到 ${keyLabel} 键 <span class="en">Wrong key — put ${a.en} on ${keyLabel}</span>`;
     kbSetTimeout(() => {
       keyElement.classList.remove('shake', 'wrong');
-      keyElement.setAttribute('fill', '#fff');
+      keyElement.setAttribute('fill', '#fffdf7');
       if (currentKbLevel === 3) highlightKey(currentTask.key);
     }, 600);
   }
@@ -1269,23 +1634,31 @@ function showProject(project) {
   projectSelect.classList.add('hidden');
   panelBeat.classList.toggle('active', project === 'beat');
   panelKeyboard.classList.toggle('active', project === 'keyboard');
+  if (location.hash !== '#' + project) history.replaceState(null, '', '#' + project);
 }
 function showProjectSelect() {
   interruptMelody();
   projectSelect.classList.remove('hidden');
   panelBeat.classList.remove('active');
   panelKeyboard.classList.remove('active');
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
 }
 projectBeat.addEventListener('click', ()=> showProject('beat'));
 projectKeyboard.addEventListener('click', ()=> showProject('keyboard'));
 document.querySelectorAll('.back-btn').forEach(btn=>{
   btn.addEventListener('click', showProjectSelect);
 });
+document.getElementById('homeBrand').addEventListener('click', (e) => {
+  e.preventDefault();
+  showProjectSelect();
+});
 
 // 初始化
-showProjectSelect();
 loadBeatStage('learn');
 switchKbLevel(1);
+const startHash = location.hash.slice(1);
+if (startHash === 'beat' || startHash === 'keyboard') showProject(startHash);
+else showProjectSelect();
 </script>
 </body>
 </html>
