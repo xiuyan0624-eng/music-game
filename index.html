@@ -276,6 +276,8 @@
     background: var(--pink);
     box-shadow: 3px 3px 0 var(--ink);
   }
+  /* 未完成关卡：生产环境隐藏入口，游戏代码保留供后续 React/Next 重构 */
+  .stage-btn[hidden] { display: none !important; }
   .level-tab { flex-direction: column; align-items: center; }
 
   .level-info, .progress {
@@ -848,8 +850,8 @@
         <div class="stage-select">
           <button class="stage-btn active" data-stage="learn">认识时值 <span class="en">Learn Values</span></button>
           <button class="stage-btn" data-stage="random">排排走 <span class="en">Random Order</span></button>
-          <button class="stage-btn" data-stage="apple">分拍小苹果 <span class="en">Apple Beats</span></button>
-          <button class="stage-btn" data-stage="train">拍号小火车 <span class="en">Train</span></button>
+          <button class="stage-btn" data-stage="apple" hidden>分拍小苹果 <span class="en">Apple Beats</span></button>
+          <button class="stage-btn" data-stage="train" hidden>拍号小火车 <span class="en">Train</span></button>
         </div>
         <div class="level-info" id="beatLevelInfo"></div>
         <div id="beatDisplayArea"></div>
