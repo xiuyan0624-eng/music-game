@@ -591,6 +591,151 @@
     100% { opacity: 0; transform: translateY(-22px) scale(1.1) rotate(28deg); }
   }
 
+  /* ========== 分拍小苹果 ========== */
+  .ts-btn {
+    min-height: 44px;
+    padding: 8px 16px;
+    border: 3px solid var(--ink);
+    border-radius: 99px;
+    background: #fff;
+    color: var(--ink);
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 var(--ink);
+    transition: .14s ease;
+  }
+  .ts-btn:hover { transform: translate(-1px,-2px); box-shadow: 5px 5px 0 var(--ink); background: #fff3a8; }
+  .ts-btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 var(--ink); }
+  .ts-btn.active { background: var(--pink); }
+  .apple-top { text-align: center; margin-bottom: 6px; }
+  .apple-ts { font-size: 1.35rem; font-weight: 950; color: var(--pink-dark); }
+  .apple-knowledge { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 8px 0; }
+  .apple-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: #fff7dc;
+    border: 3px solid var(--ink);
+    border-radius: 18px 15px 20px 14px;
+    padding: 8px 12px;
+    box-shadow: 4px 4px 0 rgba(33,27,28,.18);
+  }
+  .apple-card svg { width: 44px; height: 44px; }
+  .apple-card .ac-name { font-size: 0.78rem; font-weight: 850; color: var(--ink); }
+  .apple-card .ac-beats { font-size: 0.7rem; font-weight: 800; color: var(--pink-dark); }
+  .apple-bars { display: flex; gap: 12px; overflow-x: auto; padding: 8px 4px; margin: 8px 0; -webkit-overflow-scrolling: touch; }
+  .apple-bar {
+    flex-shrink: 0;
+    background: #fff7dc;
+    border: 3px solid var(--ink);
+    border-radius: 18px 15px 20px 14px;
+    padding: 14px 8px 8px;
+    position: relative;
+    box-shadow: 4px 4px 0 rgba(33,27,28,.18);
+  }
+  .table-kid {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.8rem;
+    line-height: 1;
+    transition: 0.4s;
+  }
+  .apple-bar.done .table-kid { transform: translateX(-50%) translateY(-5px) scale(1.2); }
+  .apple-bar.done .apple-plate { opacity: 0.3; }
+  .apple-bar-label { font-size: 0.7rem; font-weight: 850; color: var(--muted); margin-bottom: 4px; text-align: center; }
+  .apple-plates { display: flex; gap: 10px; justify-content: center; }
+  .apple-plate {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--ink);
+    box-shadow: 3px 3px 0 rgba(33,27,28,.16);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    position: relative;
+    transition: 0.15s;
+  }
+  .apple-plate.correct { border-color: var(--green); background: #e8f8ef; }
+  .apple-plate.wrong { border-color: var(--pink-dark); background: #ffe3ee; }
+  .apple-plate .plate-content { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 72px; }
+  .apple-plate .plate-item { cursor: pointer; }
+  .apple-plate .plate-item svg { width: 34px; height: 34px; display: block; }
+  .apple-plate .plate-beats { font-size: 0.66rem; font-weight: 850; color: var(--ink); position: absolute; bottom: 3px; }
+  .apple-tray, .note-tray {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    background: #fff7dc;
+    border: 3px solid var(--ink);
+    border-radius: 18px 15px 20px 14px;
+    box-shadow: 4px 4px 0 rgba(33,27,28,.16);
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+  .apple-tray-label, .note-tray-label { width: 100%; font-size: 0.8rem; font-weight: 850; color: var(--ink); }
+  .apple-item, .note-item {
+    cursor: grab;
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 3px solid var(--ink);
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    box-shadow: 3px 3px 0 rgba(33,27,28,.16);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .apple-item svg { width: 44px; height: 44px; }
+  .apple-item .ai-name, .note-item .note-name { font-size: 0.72rem; font-weight: 850; color: var(--ink); }
+  .apple-item .ai-beats, .note-item .note-beats { font-size: 0.62rem; font-weight: 800; color: var(--pink-dark); }
+  .apple-item:active, .note-item:active { cursor: grabbing; }
+  .apple-drag-clone, .note-drag-clone { position: fixed; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0.9; }
+  .apple-drag-clone svg { width: 44px; height: 44px; }
+  .apple-msg, .train-msg { font-size: 0.92rem; font-weight: 900; color: var(--pink-dark); min-height: 22px; }
+
+  /* ========== 拍号小火车 ========== */
+  .train-ts { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .train-scroll { overflow-x: auto; padding: 8px 4px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
+  .train { display: flex; align-items: flex-end; min-width: max-content; transition: transform 0.2s; }
+  .train-go { animation: trainLeave 2s ease-in forwards; }
+  @keyframes trainLeave {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(-108%); opacity: 0.35; }
+  }
+  .train-engine { display: flex; flex-direction: column; align-items: center; }
+  .engine-svg { width: 96px; height: auto; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.16)); }
+  .carriage { display: flex; flex-direction: column; align-items: center; }
+  .carriage-body { position: relative; width: 84px; height: 104px; --c: #ffb7c9; }
+  .carriage-svg { width: 100%; height: 100%; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.12)); }
+  .carriage-svg .body { fill: var(--c); transition: fill 0.25s; }
+  .carriage-notes { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; max-width: 60px; }
+  .carriage-note { cursor: pointer; padding: 1px; border-radius: 6px; }
+  .carriage-note svg { height: 22px; width: auto; display: block; }
+  .carriage-count { position: absolute; top: 60%; left: 0; right: 0; text-align: center; font-size: 0.64rem; font-weight: 850; color: var(--ink); }
+  .carriage-empty { font-size: 1.4rem; line-height: 1; }
+  .bar-link { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 4px; }
+  .bar-link .link-line { width: 12px; height: 3px; background: var(--ink); border-radius: 2px; }
+  .bar-link .link-label { font-size: 0.62rem; font-weight: 850; color: var(--muted); writing-mode: vertical-rl; margin: 3px 0; }
+  .train-end { display: flex; flex-direction: column; align-items: center; padding-left: 6px; }
+  .end-lines { display: flex; gap: 3px; align-items: center; margin-bottom: 5px; }
+  .end-line { width: 4px; height: 74px; border-radius: 2px; background: var(--ink); }
+  .end-line.thick { width: 8px; }
+  .end-label { font-size: 0.62rem; font-weight: 850; color: var(--muted); writing-mode: vertical-rl; }
+  .note-item svg { height: 36px; width: auto; }
+  .note-drag-clone svg { height: 44px; width: auto; }
+
   .site-footer {
     width: min(980px, calc(100% - 40px));
     margin: 0 auto;
@@ -625,6 +770,8 @@
     .level-tab .en { font-size: 0.52rem; }
     .task-box { font-size: 0.82rem; min-height: 55px; }
     .beat-key { width: 56px; height: 56px; font-size: 1.3rem; }
+    .stage-btn { font-size: 0.72rem; padding: 7px 10px; }
+    .apple-item, .note-item { padding: 8px 10px; }
     .animal-item { min-width: 44px; padding: 4px 5px; }
     .animal-item svg, .animal-item img, .animal-item .animal-avatar { width: 34px !important; height: 34px !important; }
     .melody-note { width: 28px; height: 28px; font-size: 0.75rem; }
@@ -700,7 +847,9 @@
         </div>
         <div class="stage-select">
           <button class="stage-btn active" data-stage="learn">认识时值 <span class="en">Learn Values</span></button>
-          <button class="stage-btn" data-stage="random">随机排列 <span class="en">Random Order</span></button>
+          <button class="stage-btn" data-stage="random">排排走 <span class="en">Random Order</span></button>
+          <button class="stage-btn" data-stage="apple">分拍小苹果 <span class="en">Apple Beats</span></button>
+          <button class="stage-btn" data-stage="train">拍号小火车 <span class="en">Train</span></button>
         </div>
         <div class="level-info" id="beatLevelInfo"></div>
         <div id="beatDisplayArea"></div>
@@ -709,6 +858,20 @@
           <button class="beat-key" data-n="2">2</button>
           <button class="beat-key" data-n="3">3</button>
           <button class="beat-key" data-n="4">4</button>
+        </div>
+        <div id="appleArea" style="display:none;">
+          <div class="apple-top" id="appleTop"></div>
+          <div class="apple-bars" id="appleBars"></div>
+          <div class="apple-tray" id="appleTray"></div>
+          <div class="apple-msg" id="appleMsg"></div>
+        </div>
+        <div id="trainArea" style="display:none;">
+          <div class="train-ts" id="trainTsRow"></div>
+          <div class="train-scroll">
+            <div class="train" id="trainBox"></div>
+          </div>
+          <div class="note-tray" id="noteTray"></div>
+          <div class="train-msg" id="trainMsg"></div>
         </div>
         <div class="beat-message" id="beatMsg"></div>
       </div>
@@ -722,7 +885,7 @@
           <button class="level-tab active" data-kb-level="1">认识音名 <span class="en">Learn Notes</span></button>
           <button class="level-tab" data-kb-level="2">帮我找位置 <span class="en">Find Position</span></button>
           <button class="level-tab" data-kb-level="3">旋律游戏 <span class="en">Melody Game</span></button>
-          <button class="level-tab" data-kb-level="4">自己创作 <span class="en">Compose</span></button>
+          <button class="level-tab" data-kb-level="4">小作曲家 <span class="en">Compose</span></button>
         </div>
 
         <div id="kbTaskArea">
@@ -929,7 +1092,391 @@ function handleBeatKey(n) {
 beatKeyButtons.forEach(btn=>{
   btn.addEventListener('click', ()=> handleBeatKey(parseInt(btn.dataset.n)));
 });
+
+// ========== 分拍小苹果 ==========
+const appleArea = document.getElementById('appleArea');
+const appleTop = document.getElementById('appleTop');
+const appleBars = document.getElementById('appleBars');
+const appleTray = document.getElementById('appleTray');
+const appleMsg = document.getElementById('appleMsg');
+const beatKeys = document.getElementById('beatKeys');
+const TIME_SIGS = [
+  { label: '2/4', beats: 2 },
+  { label: '3/4', beats: 3 },
+  { label: '4/4', beats: 4 },
+];
+const APPLE_NOTES = {
+  whole: { name: '完整苹果', label: '四分音符 · 一拍', beats: 1, svg: `<svg viewBox="0 0 40 40"><circle cx="20" cy="23" r="13" fill="#E74C3C"/><path d="M 20 10 Q 20 6 22 3" stroke="#7B4B2A" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="24" cy="6" rx="5" ry="3" fill="#6FBF73"/><circle cx="15" cy="19" r="3" fill="#fff" opacity="0.3"/></svg>` },
+  half: { name: '半个苹果', label: '八分音符 · 半拍', beats: 0.5, svg: `<svg viewBox="0 0 40 40"><path d="M 7 22 A 13 13 0 0 0 33 22 Z" fill="#FFF6E5" stroke="#E74C3C" stroke-width="3"/><ellipse cx="20" cy="22" rx="3" ry="4.5" fill="#7B4B2A"/><ellipse cx="15" cy="21" rx="2" ry="3" fill="#5D4037"/><ellipse cx="25" cy="21" rx="2" ry="3" fill="#5D4037"/></svg>` },
+};
+let appleState = { tables: [[[], []], [[], []], [[], []], [[], []]], plateTarget: 1 };
+let appleDrag = { active: false, type: null, clone: null, pointerId: null };
+const TABLE_KIDS = ['👧', '👦', '🧒', '👶', '🧑', '👨'];
+
+function renderAppleGame() {
+  appleTop.innerHTML = `
+    <div class="apple-ts">四二拍 2/4 <span class="en">2 beats per bar</span></div>
+    <div class="apple-knowledge">
+      <div class="apple-card">${APPLE_NOTES.whole.svg}<span class="ac-name">完整苹果</span><span class="ac-beats">四分音符 = 一拍</span></div>
+      <div class="apple-card">${APPLE_NOTES.half.svg}<span class="ac-name">半个苹果</span><span class="ac-beats">八分音符 = 半拍</span></div>
+    </div>
+  `;
+  let html = '';
+  html += `<div class="apple-bar">
+    <div class="table-kid">${TABLE_KIDS[0]}</div>
+    <div class="apple-bar-label">第 1 小节（看看）</div>
+    <div class="apple-plates">
+      <div class="apple-plate demo"><div class="plate-content"><span class="plate-item">${APPLE_NOTES.whole.svg}</span></div><span class="plate-beats">1 拍</span></div>
+      <div class="apple-plate demo"><div class="plate-content"><span class="plate-empty">空盘</span></div><span class="plate-beats">待填</span></div>
+    </div>
+  </div>`;
+  html += `<div class="apple-bar">
+    <div class="table-kid">${TABLE_KIDS[1]}</div>
+    <div class="apple-bar-label">第 2 小节（看看）</div>
+    <div class="apple-plates">
+      <div class="apple-plate demo"><div class="plate-content"><span class="plate-item">${APPLE_NOTES.half.svg}</span></div><span class="plate-beats">半拍</span></div>
+      <div class="apple-plate demo"><div class="plate-content"><span class="plate-item">${APPLE_NOTES.half.svg}</span></div><span class="plate-beats">半拍</span></div>
+    </div>
+  </div>`;
+  for (let t = 0; t < 4; t++) {
+    html += `<div class="apple-bar" data-table="${t}">
+      <div class="table-kid">${TABLE_KIDS[t + 2]}</div>
+      <div class="apple-bar-label">第 ${t + 3} 小节（你来放）</div>
+      <div class="apple-plates" data-plates="${t}"></div>
+    </div>`;
+  }
+  appleBars.innerHTML = html;
+  for (let t = 0; t < 4; t++) renderTablePlates(t);
+  appleTray.innerHTML = '<span class="apple-tray-label">🎵 把苹果拖到餐盘里（点餐盘里的苹果可拿出）：</span>';
+  Object.entries(APPLE_NOTES).forEach(([type, n]) => {
+    const item = document.createElement('div');
+    item.className = 'apple-item';
+    item.dataset.type = type;
+    item.innerHTML = n.svg + `<span class="ai-name">${n.name}</span><span class="ai-beats">${n.label}</span>`;
+    item.addEventListener('pointerdown', (e) => onApplePointerDown(type, e));
+    appleTray.appendChild(item);
+  });
+  appleMsg.innerHTML = '';
+}
+function renderTablePlates(t) {
+  const platesEl = document.querySelector(`.apple-plates[data-plates="${t}"]`);
+  platesEl.innerHTML = '';
+  appleState.tables[t].forEach((items, p) => {
+    const sum = items.reduce((s, x) => s + APPLE_NOTES[x].beats, 0);
+    const statusClass = sum === appleState.plateTarget ? ' correct' : (sum > appleState.plateTarget ? ' wrong' : '');
+    const content = items.map((type, ni) => `<span class="plate-item" data-table="${t}" data-plate="${p}" data-idx="${ni}">${APPLE_NOTES[type].svg}</span>`).join('');
+    platesEl.innerHTML += `<div class="apple-plate${statusClass}" data-table="${t}" data-plate="${p}">
+      <div class="plate-content">${content || '<span class="plate-empty">空盘</span>'}</div>
+      <span class="plate-beats">${sum}/${appleState.plateTarget} 拍</span>
+    </div>`;
+  });
+  checkApple();
+}
+function checkApple() {
+  let doneCount = 0;
+  appleState.tables.forEach((plates, t) => {
+    const bothCorrect = plates.every(items => {
+      const sum = items.reduce((s, x) => s + APPLE_NOTES[x].beats, 0);
+      return sum === appleState.plateTarget;
+    });
+    const bar = document.querySelector(`.apple-bar[data-table="${t}"]`);
+    if (bar) bar.classList.toggle('done', bothCorrect);
+    if (bothCorrect) doneCount++;
+  });
+  if (doneCount === 4) {
+    appleMsg.innerHTML = '🎉 太棒了！所有小朋友都端走了餐盘！<span class="en">Perfect!</span>';
+  } else if (doneCount > 0) {
+    appleMsg.innerHTML = `👏 已有 ${doneCount} 个小朋友端走餐盘，继续！<span class="en">${doneCount}/4</span>`;
+  } else {
+    appleMsg.innerHTML = '';
+  }
+}
+function addAppleToTable(type, tableIndex, plateIndex) {
+  appleState.tables[tableIndex][plateIndex].push(type);
+  playBeep(660, 0.08);
+  renderTablePlates(tableIndex);
+}
+function removeAppleFromTable(ti, pi, ni) {
+  appleState.tables[ti][pi].splice(ni, 1);
+  renderTablePlates(ti);
+}
+function onApplePointerDown(type, e) {
+  if (appleDrag.active) return;
+  try { e.target.setPointerCapture(e.pointerId); } catch(err) {}
+  appleDrag.active = true;
+  appleDrag.type = type;
+  appleDrag.pointerId = e.pointerId;
+  appleDrag.clone = document.createElement('div');
+  appleDrag.clone.className = 'apple-drag-clone';
+  appleDrag.clone.innerHTML = APPLE_NOTES[type].svg;
+  document.body.appendChild(appleDrag.clone);
+  appleDrag.clone.style.left = e.clientX + 'px';
+  appleDrag.clone.style.top = e.clientY + 'px';
+}
+function onAppleDocPointerMove(e) {
+  if (!appleDrag.active || e.pointerId !== appleDrag.pointerId) return;
+  appleDrag.clone.style.left = e.clientX + 'px';
+  appleDrag.clone.style.top = e.clientY + 'px';
+  e.preventDefault();
+}
+function onAppleDocPointerUp(e) {
+  if (!appleDrag.active || e.pointerId !== appleDrag.pointerId) return;
+  const plateEl = plateAtPoint(e.clientX, e.clientY);
+  if (appleDrag.clone) appleDrag.clone.remove();
+  appleDrag.clone = null;
+  const type = appleDrag.type;
+  appleDrag.active = false;
+  appleDrag.type = null;
+  appleDrag.pointerId = null;
+  if (plateEl) addAppleToTable(type, parseInt(plateEl.dataset.table), parseInt(plateEl.dataset.plate));
+}
+function onAppleDocPointerCancel(e) {
+  if (!appleDrag.active || e.pointerId !== appleDrag.pointerId) return;
+  if (appleDrag.clone) appleDrag.clone.remove();
+  appleDrag.clone = null;
+  appleDrag.active = false;
+  appleDrag.type = null;
+  appleDrag.pointerId = null;
+}
+function plateAtPoint(x, y) {
+  const plates = document.querySelectorAll('.apple-plates[data-plates] .apple-plate');
+  for (const p of plates) {
+    const r = p.getBoundingClientRect();
+    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return p;
+  }
+  return null;
+}
+document.addEventListener('pointermove', onAppleDocPointerMove);
+document.addEventListener('pointerup', onAppleDocPointerUp);
+document.addEventListener('pointercancel', onAppleDocPointerCancel);
+document.getElementById('appleBars').addEventListener('click', (e) => {
+  const el = e.target.closest('.plate-item');
+  if (el) removeAppleFromTable(parseInt(el.dataset.table), parseInt(el.dataset.plate), parseInt(el.dataset.idx));
+});
+
+// ========== 拍号小火车 ==========
+const trainArea = document.getElementById('trainArea');
+const trainTsRow = document.getElementById('trainTsRow');
+const trainBox = document.getElementById('trainBox');
+const noteTray = document.getElementById('noteTray');
+const trainMsg = document.getElementById('trainMsg');
+const TRAIN_NOTES = {
+  quarter: { name: '四分音符', beats: 1, svg: beatNotePool.quarter.noteSvg },
+  half: { name: '二分音符', beats: 2, svg: beatNotePool.half.noteSvg },
+  dottedHalf: { name: '附点二分音符', beats: 3, svg: beatNotePool.dottedHalf.noteSvg },
+  whole: { name: '全音符', beats: 4, svg: beatNotePool.whole.noteSvg },
+};
+const TRAIN_BARS = 4;
+const CARRIAGE_COLORS = ['#FFB7C9', '#9BD0EE', '#FFE2A0', '#9FE0BB'];
+let trainState = { ts: '2/4', beatsPerBar: 2, carriages: [[], [], [], []] };
+let noteDrag = { active: false, type: null, clone: null, pointerId: null };
+
+function renderTrainTsRow() {
+  trainTsRow.innerHTML = '';
+  TIME_SIGS.forEach(ts => {
+    const btn = document.createElement('button');
+    btn.className = 'ts-btn' + (ts.label === trainState.ts ? ' active' : '');
+    btn.textContent = ts.label + ' 拍';
+    btn.addEventListener('click', () => {
+      if (noteDrag.active) return;
+      trainState.ts = ts.label;
+      trainState.beatsPerBar = ts.beats;
+      trainState.carriages = Array.from({length: TRAIN_BARS}, () => []);
+      renderTrainTsRow();
+      renderTrain();
+      trainMsg.innerHTML = '';
+    });
+    trainTsRow.appendChild(btn);
+  });
+}
+function renderEngine() {
+  return `<svg class="engine-svg" viewBox="0 0 110 112" aria-label="火车头">
+    <circle cx="52" cy="12" r="7" fill="#EAF5FF" opacity="0.85"/>
+    <circle cx="60" cy="5" r="4.5" fill="#EAF5FF" opacity="0.6"/>
+    <rect x="42" y="16" width="20" height="15" rx="3.5" fill="#FF8FAB" stroke="#211b1c" stroke-width="2.5"/>
+    <text x="70" y="26" font-size="13">🍄</text>
+    <path d="M 10 52 Q 10 32 32 32 L 78 32 Q 100 32 100 52 L 100 72 Q 100 80 92 80 L 18 80 Q 10 80 10 72 Z" fill="#FFB3C6" stroke="#211b1c" stroke-width="3"/>
+    <circle cx="20" cy="40" r="2.5" fill="#fff" opacity="0.6"/>
+    <circle cx="30" cy="72" r="2.5" fill="#fff" opacity="0.6"/>
+    <circle cx="88" cy="68" r="2.5" fill="#fff" opacity="0.6"/>
+    <circle cx="78" cy="46" r="10" fill="#fff" stroke="#FF8FAB" stroke-width="2.5"/>
+    <circle cx="78" cy="46" r="3.5" fill="#FFD6E0"/>
+    <circle cx="36" cy="46" r="3" fill="#211b1c"/>
+    <circle cx="54" cy="46" r="3" fill="#211b1c"/>
+    <path d="M 40 53 Q 45 58 50 53" stroke="#211b1c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <rect x="30" y="60" width="32" height="18" rx="5" fill="#fff"/>
+    <text x="46" y="73" text-anchor="middle" font-size="14" font-weight="bold" fill="#c74f7d">${trainState.ts}</text>
+    <circle cx="34" cy="94" r="10" fill="#211b1c" stroke="#fff" stroke-width="2.5"/>
+    <circle cx="66" cy="94" r="10" fill="#211b1c" stroke="#fff" stroke-width="2.5"/>
+  </svg>`;
+}
+function renderCarriage(i, notes) {
+  const notesHtml = notes.map((type, ni) => `<span class="carriage-note" data-carriage="${i}" data-noteidx="${ni}">${TRAIN_NOTES[type].svg}</span>`).join('');
+  const sum = notes.reduce((s, t) => s + TRAIN_NOTES[t].beats, 0);
+  let color;
+  if (sum === trainState.beatsPerBar) color = '#A8E6B8';
+  else if (sum > trainState.beatsPerBar) color = '#FFA8B0';
+  else color = CARRIAGE_COLORS[i % 4];
+  const statusClass = sum === trainState.beatsPerBar ? ' correct' : (sum > trainState.beatsPerBar ? ' wrong' : '');
+  const placeholder = notesHtml || '';
+  return `<div class="carriage" data-carriage="${i}">
+    <div class="carriage-body${statusClass}" style="--c:${color};">
+      <svg class="carriage-svg" viewBox="0 0 84 104">
+        <rect class="body" x="4" y="12" width="76" height="60" rx="16" stroke="#211b1c" stroke-width="3"/>
+        <circle cx="16" cy="26" r="2.5" fill="#fff" opacity="0.55"/>
+        <circle cx="30" cy="58" r="2.5" fill="#fff" opacity="0.55"/>
+        <circle cx="68" cy="26" r="2.5" fill="#fff" opacity="0.55"/>
+        <circle cx="54" cy="58" r="2.5" fill="#fff" opacity="0.55"/>
+        <circle cx="24" cy="90" r="9" fill="#211b1c" stroke="#fff" stroke-width="2.5"/>
+        <circle cx="60" cy="90" r="9" fill="#211b1c" stroke="#fff" stroke-width="2.5"/>
+      </svg>
+      <div class="carriage-notes">${placeholder}</div>
+      <div class="carriage-count">${sum}/${trainState.beatsPerBar} 拍</div>
+    </div>
+  </div>`;
+}
+function renderTrain() {
+  let html = `<div class="train-engine">${renderEngine()}</div>`;
+  trainState.carriages.forEach((notes, i) => {
+    html += `<div class="bar-link"><span class="link-line"></span><span class="link-label">小节</span><span class="link-line"></span></div>`;
+    html += renderCarriage(i, notes);
+  });
+  html += `<div class="train-end"><div class="end-lines"><span class="end-line"></span><span class="end-line thick"></span></div><span class="end-label">终止线</span></div>`;
+  trainBox.innerHTML = html;
+  checkTrain();
+}
+function renderNoteTray() {
+  noteTray.innerHTML = '<span class="note-tray-label">🎵 把音符拖进车厢（点车厢里的音符可拿出）：</span>';
+  Object.entries(TRAIN_NOTES).forEach(([type, n]) => {
+    const item = document.createElement('div');
+    item.className = 'note-item';
+    item.dataset.type = type;
+    item.innerHTML = n.svg + `<span class="note-name">${n.name}</span><span class="note-beats">${n.beats} 拍</span>`;
+    item.addEventListener('pointerdown', (e) => onNotePointerDown(type, e));
+    noteTray.appendChild(item);
+  });
+}
+function playTrainHorn() {
+  playBeep(233, 0.28);
+  setTimeout(() => playBeep(196, 0.32), 420);
+}
+function checkTrain() {
+  let allCorrect = true;
+  let allFilled = true;
+  trainState.carriages.forEach(notes => {
+    const sum = notes.reduce((s, t) => s + TRAIN_NOTES[t].beats, 0);
+    if (notes.length === 0) allFilled = false;
+    if (sum !== trainState.beatsPerBar) allCorrect = false;
+  });
+  if (allCorrect && allFilled) {
+    trainMsg.innerHTML = '🎉 太棒了！每个小节都装对了，火车开动啦！<span class="en">All correct! Choo-choo!</span>';
+    playTrainHorn();
+    trainBox.classList.add('train-go');
+    setTimeout(() => {
+      trainBox.classList.remove('train-go');
+      trainState.carriages = Array.from({length: TRAIN_BARS}, () => []);
+      renderTrain();
+      trainMsg.innerHTML = '';
+    }, 2400);
+  } else if (allFilled) {
+    trainMsg.innerHTML = '🤔 有些车厢拍数不对，点车厢里的音符可以拿出来重放 <span class="en">Some cars are wrong — tap a note to remove it</span>';
+  } else {
+    trainMsg.innerHTML = '';
+  }
+}
+function addNoteToCarriage(type, index) {
+  trainState.carriages[index].push(type);
+  playBeep(660, 0.08);
+  renderTrain();
+}
+function removeNoteFromCarriage(ci, ni) {
+  trainState.carriages[ci].splice(ni, 1);
+  renderTrain();
+}
+function onNotePointerDown(type, e) {
+  if (noteDrag.active) return;
+  try { e.target.setPointerCapture(e.pointerId); } catch(err) {}
+  noteDrag.active = true;
+  noteDrag.type = type;
+  noteDrag.pointerId = e.pointerId;
+  noteDrag.clone = document.createElement('div');
+  noteDrag.clone.className = 'note-drag-clone';
+  noteDrag.clone.innerHTML = TRAIN_NOTES[type].svg;
+  document.body.appendChild(noteDrag.clone);
+  noteDrag.clone.style.left = e.clientX + 'px';
+  noteDrag.clone.style.top = e.clientY + 'px';
+}
+function onNoteDocPointerMove(e) {
+  if (!noteDrag.active || e.pointerId !== noteDrag.pointerId) return;
+  noteDrag.clone.style.left = e.clientX + 'px';
+  noteDrag.clone.style.top = e.clientY + 'px';
+  e.preventDefault();
+}
+function onNoteDocPointerUp(e) {
+  if (!noteDrag.active || e.pointerId !== noteDrag.pointerId) return;
+  const carriageEl = carriageAtPoint(e.clientX, e.clientY);
+  if (noteDrag.clone) noteDrag.clone.remove();
+  noteDrag.clone = null;
+  const type = noteDrag.type;
+  noteDrag.active = false;
+  noteDrag.type = null;
+  noteDrag.pointerId = null;
+  if (carriageEl) addNoteToCarriage(type, parseInt(carriageEl.dataset.carriage));
+}
+function onNoteDocPointerCancel(e) {
+  if (!noteDrag.active || e.pointerId !== noteDrag.pointerId) return;
+  if (noteDrag.clone) noteDrag.clone.remove();
+  noteDrag.clone = null;
+  noteDrag.active = false;
+  noteDrag.type = null;
+  noteDrag.pointerId = null;
+}
+function carriageAtPoint(x, y) {
+  const carriages = document.querySelectorAll('#trainBox .carriage');
+  for (const c of carriages) {
+    const r = c.getBoundingClientRect();
+    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return c;
+  }
+  return null;
+}
+document.addEventListener('pointermove', onNoteDocPointerMove);
+document.addEventListener('pointerup', onNoteDocPointerUp);
+document.addEventListener('pointercancel', onNoteDocPointerCancel);
+trainBox.addEventListener('click', (e) => {
+  const noteEl = e.target.closest('.carriage-note');
+  if (noteEl) removeNoteFromCarriage(parseInt(noteEl.dataset.carriage), parseInt(noteEl.dataset.noteidx));
+});
+
 function loadBeatStage(stage) {
+  if (stage === 'apple') {
+    trainArea.style.display = 'none';
+    appleArea.style.display = 'block';
+    beatDisplayArea.style.display = 'none';
+    beatKeys.style.display = 'none';
+    beatLevelInfo.style.display = 'none';
+    beatMsg.innerHTML = '';
+    appleState.tables = [[[], []], [[], []], [[], []], [[], []]];
+    renderAppleGame();
+    return;
+  }
+  if (stage === 'train') {
+    trainArea.style.display = 'block';
+    appleArea.style.display = 'none';
+    beatDisplayArea.style.display = 'none';
+    beatKeys.style.display = 'none';
+    beatLevelInfo.style.display = 'none';
+    beatMsg.innerHTML = '';
+    trainState.carriages = Array.from({length: TRAIN_BARS}, () => []);
+    renderTrainTsRow();
+    renderNoteTray();
+    renderTrain();
+    return;
+  }
+  trainArea.style.display = 'none';
+  appleArea.style.display = 'none';
+  beatDisplayArea.style.display = '';
+  beatKeys.style.display = '';
+  beatLevelInfo.style.display = '';
   if (stage === 'learn') beatState.questions = buildLearnQuestions();
   else if (stage === 'random') beatState.questions = buildRandomGroupQuestions();
   beatState.currentIndex = 0;
