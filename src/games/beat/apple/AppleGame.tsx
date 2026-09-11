@@ -12,7 +12,6 @@ import {
   type AppleNoteType,
   type AppleTables,
 } from "./logic";
-import { SPARKLE_SVG } from "../noteSvg";
 
 const PLATE_TARGET = 1;
 
@@ -43,16 +42,22 @@ function TableShell({
   label,
   done,
   tableIndex,
+  example,
   children,
 }: {
   friendIndex: number;
   label: string;
   done?: boolean;
   tableIndex?: number;
+  example?: boolean;
   children: ReactNode;
 }) {
   return (
-    <div className={`apple-bar${done ? " done" : ""}`} data-table={tableIndex}>
+    <div
+      className={`apple-bar${done ? " done" : ""}${example ? " example" : ""}`}
+      data-table={tableIndex}
+      aria-label={example ? `示例，${label}，只能看` : undefined}
+    >
       <div className="apple-table">
         <div className="table-kid">
           <img src={tableFriend(friendIndex)} alt="" draggable={false} />
@@ -60,7 +65,10 @@ function TableShell({
         <img className="table-img" src={TABLE_IMG} alt="" draggable={false} />
         {children}
       </div>
-      <div className="apple-bar-label">{label}</div>
+      <div className="apple-bar-label">
+        {example && <span className="apple-example-badge">示例 · 只能看</span>}
+        {label}
+      </div>
     </div>
   );
 }
@@ -113,6 +121,7 @@ export function AppleGame() {
   const [ts, setTs] = useState("2/4");
   const [beats, setBeats] = useState(2);
   const [tables, setTables] = useState<AppleTables>(() => emptyAppleTables(2));
+  const [dropHint, setDropHint] = useState("");
   const barsRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag>({ active: false, type: null, clone: null, pointerId: null });
 
@@ -121,6 +130,7 @@ export function AppleGame() {
     setTs(label);
     setBeats(b);
     setTables(emptyAppleTables(b));
+    setDropHint("");
   };
 
   const addApple = (type: AppleNoteType, tableIndex: number, plateIndex: number) => {
@@ -142,7 +152,7 @@ export function AppleGame() {
 
   useEffect(() => {
     const plateAtPoint = (x: number, y: number) => {
-      const plates = barsRef.current?.querySelectorAll<HTMLElement>(".apple-plates[data-plates] .apple-plate");
+      const plates = barsRef.current?.querySelectorAll<HTMLElement>(".apple-plate");
       if (!plates) return null;
       for (const p of plates) {
         const r = p.getBoundingClientRect();
@@ -168,7 +178,15 @@ export function AppleGame() {
       d.type = null;
       d.pointerId = null;
       if (plateEl && type) {
-        addApple(type, Number(plateEl.dataset.table), Number(plateEl.dataset.plate));
+        if (plateEl.closest(".apple-bar.example")) {
+          setDropHint("这是例子哦，请放到后面「你来放」的桌子上～");
+          return;
+        }
+        const tableIndex = Number(plateEl.dataset.table);
+        const plateIndex = Number(plateEl.dataset.plate);
+        if (!Number.isInteger(tableIndex) || !Number.isInteger(plateIndex)) return;
+        setDropHint("");
+        addApple(type, tableIndex, plateIndex);
       }
     };
     const onCancel = (e: PointerEvent) => {
@@ -216,11 +234,13 @@ export function AppleGame() {
   tables.forEach((plates) => {
     if (tableDone(plates, PLATE_TARGET, scale)) doneCount += 1;
   });
-  let msg = "";
-  if (doneCount === 4) {
-    msg = '🎉 太棒了！所有小朋友都端走了餐盘！<span class="en">Perfect!</span>';
-  } else if (doneCount > 0) {
-    msg = `👏 已有 ${doneCount} 个小朋友端走餐盘，继续！<span class="en">${doneCount}/4</span>`;
+  let msg = dropHint;
+  if (!msg) {
+    if (doneCount === 4) {
+      msg = '🎉 太棒了！所有小朋友都端走了餐盘！<span class="en">Perfect!</span>';
+    } else if (doneCount > 0) {
+      msg = `👏 已有 ${doneCount} 个小朋友端走餐盘，继续！<span class="en">${doneCount}/4</span>`;
+    }
   }
 
   return (
@@ -242,7 +262,6 @@ export function AppleGame() {
           {TIME_SIGS.find((x) => x.label === ts)?.cn} {ts} <span className="en">{beats} beats per bar</span>
         </div>
         <div className="apple-knowledge">
-          <span className="ac-sparkles" aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPARKLE_SVG }} />
           {(Object.keys(APPLE_NOTES) as AppleNoteType[]).map((type) => {
             const n = APPLE_NOTES[type];
             return (
@@ -261,43 +280,40 @@ export function AppleGame() {
         ref={barsRef}
         onClick={(e) => {
           const el = (e.target as HTMLElement).closest<HTMLElement>(".plate-item");
-          if (!el) return;
-          removeApple(Number(el.dataset.table), Number(el.dataset.plate), Number(el.dataset.idx));
+          if (!el || el.closest(".apple-bar.example")) return;
+          const tableIndex = Number(el.dataset.table);
+          const plateIndex = Number(el.dataset.plate);
+          const itemIndex = Number(el.dataset.idx);
+          if (!Number.isInteger(tableIndex) || !Number.isInteger(plateIndex) || !Number.isInteger(itemIndex)) return;
+          removeApple(tableIndex, plateIndex, itemIndex);
         }}
       >
         {!isEighth && (
           <>
-            <TableShell friendIndex={0} label="第 1 小节（看看）">
+            <TableShell friendIndex={0} label="完整苹果 = 1 拍" example>
               <div className="apple-plates">
                 {Array.from({ length: beats }).map((_, p) => (
-                  <Plate
-                    key={p}
-                    items={p === 0 ? ["whole"] : []}
-                    scale={scale}
-                    beatsText={p === 0 ? "1 拍" : "待填"}
-                  />
+                  <Plate key={p} items={["whole"]} scale={scale} beatsText="1 拍" />
                 ))}
               </div>
             </TableShell>
-            <TableShell friendIndex={1} label="第 2 小节（看看）">
+            <TableShell friendIndex={1} label="半个苹果 ×2 = 1 拍" example>
               <div className="apple-plates">
                 {Array.from({ length: beats }).map((_, p) => (
-                  <Plate
-                    key={p}
-                    items={p === 0 ? ["half", "half"] : []}
-                    scale={scale}
-                    beatsText={p === 0 ? "半拍 ×2" : "待填"}
-                  />
+                  <Plate key={p} items={["half", "half"]} scale={scale} beatsText="半拍 ×2" />
                 ))}
               </div>
             </TableShell>
+            <div className="apple-bars-split" aria-hidden="true">
+              <span>你来放</span>
+            </div>
           </>
         )}
         {tables.map((plates, t) => (
           <TableShell
             key={t}
             friendIndex={t + 2}
-            label={`第 ${t + 3} 小节（你来放）`}
+            label={`第 ${t + 1} 小节（你来放）`}
             done={tableDone(plates, PLATE_TARGET, scale)}
             tableIndex={t}
           >

@@ -8,7 +8,6 @@ export const NOTE_COLOR = {
   half: "#F6D24A",
   dottedHalf: "#F6D24A",
   whole: "#FF9BC4",
-  sparkle: "#F6D24A",
 } as const;
 
 function svg(inner: string, viewBox: string): string {
@@ -37,14 +36,6 @@ function cartoonNote(opts: {
   const vb = flags ? "0 0 84 90" : dot ? "0 0 66 90" : "0 0 52 90";
   return svg(`${stem}${flag2}${head}${dotEl}`, vb);
 }
-
-export const SPARKLE_SVG = svg(
-  `<g fill="${NOTE_COLOR.sparkle}">
-    <rect x="2" y="4" width="13" height="30" rx="6.5" transform="rotate(-32 8.5 19)"/>
-    <rect x="22" y="16" width="13" height="22" rx="6.5" transform="rotate(-40 28.5 27)"/>
-  </g>`,
-  "0 0 48 52",
-);
 
 export const NOTE_SVG = {
   sixteenth: cartoonNote({ color: NOTE_COLOR.sixteenth, flags: 2 }),
