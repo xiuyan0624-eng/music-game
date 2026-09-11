@@ -6,6 +6,7 @@ import {
   plateSum,
   TABLE_KIDS,
   tableDone,
+  TIME_SIGS,
   type AppleNoteType,
   type AppleTables,
 } from "./logic";
@@ -21,9 +22,18 @@ type Drag = {
 
 export function AppleGame() {
   const { audio } = useApp();
-  const [tables, setTables] = useState<AppleTables>(() => emptyAppleTables());
+  const [ts, setTs] = useState("2/4");
+  const [beats, setBeats] = useState(2);
+  const [tables, setTables] = useState<AppleTables>(() => emptyAppleTables(2));
   const barsRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag>({ active: false, type: null, clone: null, pointerId: null });
+
+  const changeTs = (label: string, b: number) => {
+    if (dragRef.current.active) return;
+    setTs(label);
+    setBeats(b);
+    setTables(emptyAppleTables(b));
+  };
 
   const addApple = (type: AppleNoteType, tableIndex: number, plateIndex: number) => {
     setTables((prev) => {
@@ -111,9 +121,12 @@ export function AppleGame() {
     d.clone.style.top = `${e.clientY}px`;
   };
 
+  const isEighth = ts.endsWith("/8");
+  const scale = isEighth ? 2 : 1;
+
   let doneCount = 0;
   tables.forEach((plates) => {
-    if (tableDone(plates, PLATE_TARGET)) doneCount += 1;
+    if (tableDone(plates, PLATE_TARGET, scale)) doneCount += 1;
   });
   let msg = "";
   if (doneCount === 4) {
@@ -125,8 +138,20 @@ export function AppleGame() {
   return (
     <div>
       <div className="apple-top">
+        <div className="train-ts">
+          {TIME_SIGS.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              className={`ts-btn${item.label === ts ? " active" : ""}`}
+              onClick={() => changeTs(item.label, item.beats)}
+            >
+              {item.label} 拍
+            </button>
+          ))}
+        </div>
         <div className="apple-ts">
-          四二拍 2/4 <span className="en">2 beats per bar</span>
+          {TIME_SIGS.find((x) => x.label === ts)?.cn} {ts} <span className="en">{beats} beats per bar</span>
         </div>
         <div className="apple-knowledge">
           {(Object.keys(APPLE_NOTES) as AppleNoteType[]).map((type) => {
@@ -135,7 +160,11 @@ export function AppleGame() {
               <div className="apple-card" key={type}>
                 <span dangerouslySetInnerHTML={{ __html: n.svg }} />
                 <span className="ac-name">{n.name}</span>
-                <span className="ac-beats">{type === "whole" ? "四分音符 = 一拍" : "八分音符 = 半拍"}</span>
+                <span className="ac-beats">
+                  {type === "whole"
+                    ? `四分音符 = ${scale === 1 ? "一拍" : "2 拍"}`
+                    : `八分音符 = ${scale === 1 ? "半拍" : "一拍"}`}
+                </span>
               </div>
             );
           })}
@@ -150,49 +179,56 @@ export function AppleGame() {
           removeApple(Number(el.dataset.table), Number(el.dataset.plate), Number(el.dataset.idx));
         }}
       >
-        <div className="apple-bar">
-          <div className="table-kid">{TABLE_KIDS[0]}</div>
-          <div className="apple-bar-label">第 1 小节（看看）</div>
-          <div className="apple-plates">
-            <div className="apple-plate demo">
-              <div className="plate-content">
-                <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.whole.svg }} />
+        {!isEighth && (
+          <>
+            <div className="apple-bar">
+              <div className="table-kid">{TABLE_KIDS[0]}</div>
+              <div className="apple-bar-label">第 1 小节（看看）</div>
+              <div className="apple-plates">
+                {Array.from({ length: beats }).map((_, p) => (
+                  <div key={p} className="apple-plate demo">
+                    <div className="plate-content">
+                      {p === 0 ? (
+                        <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.whole.svg }} />
+                      ) : (
+                        <span className="plate-empty">空盘</span>
+                      )}
+                    </div>
+                    <span className="plate-beats">{p === 0 ? "1 拍" : "待填"}</span>
+                  </div>
+                ))}
               </div>
-              <span className="plate-beats">1 拍</span>
             </div>
-            <div className="apple-plate demo">
-              <div className="plate-content">
-                <span className="plate-empty">空盘</span>
+            <div className="apple-bar">
+              <div className="table-kid">{TABLE_KIDS[1]}</div>
+              <div className="apple-bar-label">第 2 小节（看看）</div>
+              <div className="apple-plates">
+                {Array.from({ length: beats }).map((_, p) => (
+                  <div key={p} className="apple-plate demo">
+                    <div className="plate-content">
+                      {p === 0 ? (
+                        <>
+                          <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.half.svg }} />
+                          <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.half.svg }} />
+                        </>
+                      ) : (
+                        <span className="plate-empty">空盘</span>
+                      )}
+                    </div>
+                    <span className="plate-beats">{p === 0 ? "半拍 ×2" : "待填"}</span>
+                  </div>
+                ))}
               </div>
-              <span className="plate-beats">待填</span>
             </div>
-          </div>
-        </div>
-        <div className="apple-bar">
-          <div className="table-kid">{TABLE_KIDS[1]}</div>
-          <div className="apple-bar-label">第 2 小节（看看）</div>
-          <div className="apple-plates">
-            <div className="apple-plate demo">
-              <div className="plate-content">
-                <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.half.svg }} />
-              </div>
-              <span className="plate-beats">半拍</span>
-            </div>
-            <div className="apple-plate demo">
-              <div className="plate-content">
-                <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.half.svg }} />
-              </div>
-              <span className="plate-beats">半拍</span>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
         {tables.map((plates, t) => (
-          <div key={t} className={`apple-bar${tableDone(plates, PLATE_TARGET) ? " done" : ""}`} data-table={t}>
+          <div key={t} className={`apple-bar${tableDone(plates, PLATE_TARGET, scale) ? " done" : ""}`} data-table={t}>
             <div className="table-kid">{TABLE_KIDS[t + 2]}</div>
             <div className="apple-bar-label">第 {t + 3} 小节（你来放）</div>
             <div className="apple-plates" data-plates={t}>
               {plates.map((items, p) => {
-                const sum = plateSum(items);
+                const sum = plateSum(items, scale);
                 const statusClass = sum === PLATE_TARGET ? " correct" : sum > PLATE_TARGET ? " wrong" : "";
                 return (
                   <div key={p} className={`apple-plate${statusClass}`} data-table={t} data-plate={p}>
@@ -230,7 +266,7 @@ export function AppleGame() {
             <div key={type} className="apple-item" onPointerDown={(e) => onTrayPointerDown(type, e)}>
               <span dangerouslySetInnerHTML={{ __html: n.svg }} />
               <span className="ai-name">{n.name}</span>
-              <span className="ai-beats">{n.label}</span>
+              <span className="ai-beats">{n.beats * scale === 0.5 ? "半拍" : `${n.beats * scale} 拍`}</span>
             </div>
           );
         })}
