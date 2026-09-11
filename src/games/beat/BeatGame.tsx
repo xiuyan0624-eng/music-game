@@ -24,8 +24,8 @@ export function BeatGame() {
         items={[
           { id: "learn", label: <>认识时值 <En>Learn Values</En></> },
           { id: "random", label: <>排排走 <En>Random Order</En></> },
-          { id: "apple", label: <>分拍小苹果 <En>Apple Beats</En></>, hidden: true },
-          { id: "train", label: <>拍号小火车 <En>Train</En></>, hidden: true },
+          { id: "apple", label: <>分拍小苹果 <En>Apple Beats</En></> },
+          { id: "train", label: <>拍号小火车 <En>Train</En></> },
         ]}
       />
       {showQuiz && question && (

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "../../../context/AppContext";
-import type { NoteKey } from "../logic";
 import {
   CARRIAGE_COLORS,
   carriageSum,
@@ -8,11 +7,12 @@ import {
   TIME_SIGS,
   TRAIN_NOTES,
   trainStatus,
+  type TrainNoteKey,
 } from "./logic";
 
 type Drag = {
   active: boolean;
-  type: NoteKey | null;
+  type: TrainNoteKey | null;
   clone: HTMLDivElement | null;
   pointerId: number | null;
 };
@@ -54,14 +54,14 @@ export function TrainGame() {
   const { audio } = useApp();
   const [ts, setTs] = useState("2/4");
   const [beatsPerBar, setBeatsPerBar] = useState(2);
-  const [carriages, setCarriages] = useState<NoteKey[][]>(() => emptyCarriages());
+  const [carriages, setCarriages] = useState<TrainNoteKey[][]>(() => emptyCarriages());
   const [msg, setMsg] = useState("");
   const [going, setGoing] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag>({ active: false, type: null, clone: null, pointerId: null });
   const winLock = useRef(false);
 
-  const addNote = (type: NoteKey, index: number) => {
+  const addNote = (type: TrainNoteKey, index: number) => {
     setCarriages((prev) => {
       const next = prev.map((row) => [...row]);
       next[index].push(type);
@@ -150,7 +150,7 @@ export function TrainGame() {
     };
   }, [audio]);
 
-  const onTrayDown = (type: NoteKey, e: React.PointerEvent) => {
+  const onTrayDown = (type: TrainNoteKey, e: React.PointerEvent) => {
     const d = dragRef.current;
     if (d.active) return;
     try {
@@ -257,7 +257,7 @@ export function TrainGame() {
       </div>
       <div className="note-tray">
         <span className="note-tray-label">🎵 把音符拖进车厢（点车厢里的音符可拿出）：</span>
-        {(Object.keys(TRAIN_NOTES) as NoteKey[]).map((type) => {
+        {(Object.keys(TRAIN_NOTES) as TrainNoteKey[]).map((type) => {
           const n = TRAIN_NOTES[type];
           return (
             <div key={type} className="note-item" onPointerDown={(e) => onTrayDown(type, e)}>
