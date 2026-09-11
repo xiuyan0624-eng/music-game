@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useApp } from "../../../context/AppContext";
 import {
   APPLE_NOTES,
+  PLATE_IMG,
+  TABLE_IMG,
   emptyAppleTables,
   plateSum,
-  TABLE_KIDS,
+  tableFriend,
   tableDone,
   TIME_SIGS,
   type AppleNoteType,
@@ -12,6 +14,87 @@ import {
 } from "./logic";
 
 const PLATE_TARGET = 1;
+
+/** 拍数文字：1 → 一拍，0.5 → 半拍，0.25 → ¼ 拍 */
+function beatLabel(beats: number): string {
+  if (beats === 1) return "一拍";
+  if (beats === 0.5) return "半拍";
+  if (beats === 0.25) return "¼ 拍";
+  return `${beats} 拍`;
+}
+
+/** 苹果贴图（完整 / 半个 / 四分之一） */
+function AppleIcon({ type }: { type: AppleNoteType }) {
+  return (
+    <span className="apple-img">
+      <img src={APPLE_NOTES[type].img} alt="" draggable={false} />
+    </span>
+  );
+}
+
+/** 一张餐桌：圆桌贴图 + 桌边小动物 + 桌上餐盘 */
+function TableShell({
+  friendIndex,
+  label,
+  done,
+  tableIndex,
+  children,
+}: {
+  friendIndex: number;
+  label: string;
+  done?: boolean;
+  tableIndex?: number;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`apple-bar${done ? " done" : ""}`} data-table={tableIndex}>
+      <div className="apple-table">
+        <div className="table-kid">
+          <img src={tableFriend(friendIndex)} alt="" draggable={false} />
+        </div>
+        <img className="table-img" src={TABLE_IMG} alt="" draggable={false} />
+        {children}
+      </div>
+      <div className="apple-bar-label">{label}</div>
+    </div>
+  );
+}
+
+/** 餐盘：盘贴图 + 盘中苹果（示范盘无 t/p） */
+function Plate({
+  statusClass = "",
+  items,
+  t,
+  p,
+  scale,
+  beatsText,
+}: {
+  statusClass?: string;
+  items: AppleNoteType[];
+  t?: number;
+  p?: number;
+  scale: number;
+  beatsText?: string;
+}) {
+  const sum = plateSum(items, scale);
+  return (
+    <div className={`apple-plate${statusClass}`} data-table={t} data-plate={p}>
+      <img className="plate-img" src={PLATE_IMG} alt="" draggable={false} />
+      <div className="plate-content">
+        {items.length === 0 ? (
+          <span className="plate-empty">空盘</span>
+        ) : (
+          items.map((type, ni) => (
+            <span key={`${type}-${ni}`} className="plate-item" data-table={t} data-plate={p} data-idx={ni}>
+              <AppleIcon type={type} />
+            </span>
+          ))
+        )}
+      </div>
+      <span className="plate-beats">{beatsText ?? `${sum}/${PLATE_TARGET} 拍`}</span>
+    </div>
+  );
+}
 
 type Drag = {
   active: boolean;
@@ -115,7 +198,7 @@ export function AppleGame() {
     d.pointerId = e.pointerId;
     d.clone = document.createElement("div");
     d.clone.className = "apple-drag-clone";
-    d.clone.innerHTML = APPLE_NOTES[type].svg;
+    d.clone.innerHTML = `<span class="apple-img"><img src="${APPLE_NOTES[type].img}" alt="" /></span>`;
     document.body.appendChild(d.clone);
     d.clone.style.left = `${e.clientX}px`;
     d.clone.style.top = `${e.clientY}px`;
@@ -158,13 +241,9 @@ export function AppleGame() {
             const n = APPLE_NOTES[type];
             return (
               <div className="apple-card" key={type}>
-                <span dangerouslySetInnerHTML={{ __html: n.svg }} />
+                <AppleIcon type={type} />
                 <span className="ac-name">{n.name}</span>
-                <span className="ac-beats">
-                  {type === "whole"
-                    ? `四分音符 = ${scale === 1 ? "一拍" : "2 拍"}`
-                    : `八分音符 = ${scale === 1 ? "半拍" : "一拍"}`}
-                </span>
+                <span className="ac-beats">{n.label.split(" · ")[0]} = {beatLabel(n.beats * scale)}</span>
               </div>
             );
           })}
@@ -181,81 +260,48 @@ export function AppleGame() {
       >
         {!isEighth && (
           <>
-            <div className="apple-bar">
-              <div className="table-kid">{TABLE_KIDS[0]}</div>
-              <div className="apple-bar-label">第 1 小节（看看）</div>
+            <TableShell friendIndex={0} label="第 1 小节（看看）">
               <div className="apple-plates">
                 {Array.from({ length: beats }).map((_, p) => (
-                  <div key={p} className="apple-plate demo">
-                    <div className="plate-content">
-                      {p === 0 ? (
-                        <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.whole.svg }} />
-                      ) : (
-                        <span className="plate-empty">空盘</span>
-                      )}
-                    </div>
-                    <span className="plate-beats">{p === 0 ? "1 拍" : "待填"}</span>
-                  </div>
+                  <Plate
+                    key={p}
+                    items={p === 0 ? ["whole"] : []}
+                    scale={scale}
+                    beatsText={p === 0 ? "1 拍" : "待填"}
+                  />
                 ))}
               </div>
-            </div>
-            <div className="apple-bar">
-              <div className="table-kid">{TABLE_KIDS[1]}</div>
-              <div className="apple-bar-label">第 2 小节（看看）</div>
+            </TableShell>
+            <TableShell friendIndex={1} label="第 2 小节（看看）">
               <div className="apple-plates">
                 {Array.from({ length: beats }).map((_, p) => (
-                  <div key={p} className="apple-plate demo">
-                    <div className="plate-content">
-                      {p === 0 ? (
-                        <>
-                          <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.half.svg }} />
-                          <span className="plate-item" dangerouslySetInnerHTML={{ __html: APPLE_NOTES.half.svg }} />
-                        </>
-                      ) : (
-                        <span className="plate-empty">空盘</span>
-                      )}
-                    </div>
-                    <span className="plate-beats">{p === 0 ? "半拍 ×2" : "待填"}</span>
-                  </div>
+                  <Plate
+                    key={p}
+                    items={p === 0 ? ["half", "half"] : []}
+                    scale={scale}
+                    beatsText={p === 0 ? "半拍 ×2" : "待填"}
+                  />
                 ))}
               </div>
-            </div>
+            </TableShell>
           </>
         )}
         {tables.map((plates, t) => (
-          <div key={t} className={`apple-bar${tableDone(plates, PLATE_TARGET, scale) ? " done" : ""}`} data-table={t}>
-            <div className="table-kid">{TABLE_KIDS[t + 2]}</div>
-            <div className="apple-bar-label">第 {t + 3} 小节（你来放）</div>
+          <TableShell
+            key={t}
+            friendIndex={t + 2}
+            label={`第 ${t + 3} 小节（你来放）`}
+            done={tableDone(plates, PLATE_TARGET, scale)}
+            tableIndex={t}
+          >
             <div className="apple-plates" data-plates={t}>
               {plates.map((items, p) => {
                 const sum = plateSum(items, scale);
                 const statusClass = sum === PLATE_TARGET ? " correct" : sum > PLATE_TARGET ? " wrong" : "";
-                return (
-                  <div key={p} className={`apple-plate${statusClass}`} data-table={t} data-plate={p}>
-                    <div className="plate-content">
-                      {items.length === 0 ? (
-                        <span className="plate-empty">空盘</span>
-                      ) : (
-                        items.map((type, ni) => (
-                          <span
-                            key={`${type}-${ni}`}
-                            className="plate-item"
-                            data-table={t}
-                            data-plate={p}
-                            data-idx={ni}
-                            dangerouslySetInnerHTML={{ __html: APPLE_NOTES[type].svg }}
-                          />
-                        ))
-                      )}
-                    </div>
-                    <span className="plate-beats">
-                      {sum}/{PLATE_TARGET} 拍
-                    </span>
-                  </div>
-                );
+                return <Plate key={p} statusClass={statusClass} items={items} t={t} p={p} scale={scale} />;
               })}
             </div>
-          </div>
+          </TableShell>
         ))}
       </div>
       <div className="apple-tray">
@@ -264,9 +310,9 @@ export function AppleGame() {
           const n = APPLE_NOTES[type];
           return (
             <div key={type} className="apple-item" onPointerDown={(e) => onTrayPointerDown(type, e)}>
-              <span dangerouslySetInnerHTML={{ __html: n.svg }} />
+              <AppleIcon type={type} />
               <span className="ai-name">{n.name}</span>
-              <span className="ai-beats">{n.beats * scale === 0.5 ? "半拍" : `${n.beats * scale} 拍`}</span>
+              <span className="ai-beats">{beatLabel(n.beats * scale)}</span>
             </div>
           );
         })}

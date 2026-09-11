@@ -1,5 +1,24 @@
+import { assetUrl } from "../../../lib/assets";
 import { beatNotePool, type NoteKey } from "../logic";
 import { TIME_SIGS } from "../apple/logic";
+
+/** 火车配色：粉 / 黄 / 蓝 */
+export const TRAIN_ENGINE_IMGS = [
+  assetUrl("train-engine-pink.png"),
+  assetUrl("train-engine-yellow.png"),
+  assetUrl("train-engine-blue.png"),
+];
+export const CARRIAGE_IMGS = [
+  assetUrl("train-carriage-pink.png"),
+  assetUrl("train-carriage-yellow.png"),
+  assetUrl("train-carriage-blue.png"),
+];
+
+/** 每个拍号对应一种火车配色（2/4 粉 · 3/4 黄 · 4/4 蓝 · 3/8 粉） */
+export function trainColorIndex(tsLabel: string): number {
+  const i = TIME_SIGS.findIndex((t) => t.label === tsLabel);
+  return (i < 0 ? 0 : i) % TRAIN_ENGINE_IMGS.length;
+}
 
 export { TIME_SIGS };
 
@@ -18,7 +37,6 @@ export const TRAIN_NOTES: Record<TrainNoteKey, { name: string; beats: number; sv
 };
 
 export const TRAIN_BARS = 5;
-export const CARRIAGE_COLORS = ["#FFB7C9", "#9BD0EE", "#FFE2A0", "#9FE0BB"];
 
 export function emptyCarriages(): TrainNoteKey[][] {
   return Array.from({ length: TRAIN_BARS }, () => []);
