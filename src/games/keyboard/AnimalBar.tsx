@@ -4,15 +4,18 @@ type Props = {
   level: number;
   selected: AnimalKey | null;
   dragging: AnimalKey | null;
+  /** 动物排列顺序（「帮我找位置」里会打乱） */
+  order?: AnimalKey[];
   onSelect: (key: AnimalKey) => void;
   onPointerDown: (key: AnimalKey, e: React.PointerEvent) => void;
 };
 
-export function AnimalBar({ level, selected, dragging, onSelect, onPointerDown }: Props) {
+export function AnimalBar({ level, selected, dragging, order, onSelect, onPointerDown }: Props) {
   const showDragHint = level >= 2;
+  const keys = order ?? (Object.keys(animalData) as AnimalKey[]);
   return (
     <div className="animal-bar" id="animalBar">
-      {(Object.keys(animalData) as AnimalKey[]).map((k) => {
+      {keys.map((k) => {
         const data = animalData[k];
         const cls = [
           "animal-item",

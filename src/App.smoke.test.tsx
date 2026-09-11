@@ -43,8 +43,8 @@ describe("classroom smoke", () => {
     const trainBtn = [...host.querySelectorAll(".stage-btn")].find((el) => el.textContent?.includes("拍号小火车"));
     expect(appleBtn).toBeTruthy();
     expect(trainBtn).toBeTruthy();
-    expect((appleBtn as HTMLButtonElement).hidden).toBe(true);
-    expect((trainBtn as HTMLButtonElement).hidden).toBe(true);
+    expect((appleBtn as HTMLButtonElement).hidden).toBe(false);
+    expect((trainBtn as HTMLButtonElement).hidden).toBe(false);
   });
 
   it("opens keyboard game and keeps four levels", () => {

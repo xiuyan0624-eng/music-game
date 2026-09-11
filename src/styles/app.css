@@ -615,53 +615,61 @@
     padding: 8px 12px;
     box-shadow: 4px 4px 0 rgba(33,27,28,.18);
   }
-  .apple-card svg { width: 44px; height: 44px; }
+  /* 苹果贴图：完整 / 半个 / 四分之一 */
+  .apple-img { display: block; width: 46px; line-height: 0; }
+  .apple-img img { width: 100%; height: auto; display: block; }
+  .apple-card .apple-img { width: 46px; }
   .apple-card .ac-name { font-size: 0.78rem; font-weight: 850; color: var(--ink); }
-  .apple-card .ac-beats { font-size: 0.7rem; font-weight: 800; color: var(--pink-dark); }
-  .apple-bars { display: flex; gap: 12px; overflow-x: auto; padding: 8px 4px; margin: 8px 0; -webkit-overflow-scrolling: touch; }
-  .apple-bar {
-    flex-shrink: 0;
-    background: #fff7dc;
-    border: 3px solid var(--ink);
-    border-radius: 18px 15px 20px 14px;
-    padding: 14px 8px 8px;
-    position: relative;
-    box-shadow: 4px 4px 0 rgba(33,27,28,.18);
-  }
+  .apple-card .ac-beats { font-size: 0.68rem; font-weight: 800; color: var(--pink-dark); }
+  .apple-bars { display: flex; gap: 10px; overflow-x: auto; padding: 52px 4px 8px; margin: 8px 0; -webkit-overflow-scrolling: touch; }
+  .apple-bar { flex-shrink: 0; }
+  /* 圆桌 + 桌后小动物 + 桌上餐盘 */
+  .apple-table { position: relative; width: 210px; }
   .table-kid {
     position: absolute;
-    top: -22px;
     left: 50%;
+    bottom: 56%;
     transform: translateX(-50%);
-    font-size: 1.8rem;
-    line-height: 1;
+    line-height: 0;
     transition: 0.4s;
+    z-index: 1;
   }
-  .apple-bar.done .table-kid { transform: translateX(-50%) translateY(-5px) scale(1.2); }
-  .apple-bar.done .apple-plate { opacity: 0.3; }
-  .apple-bar-label { font-size: 0.7rem; font-weight: 850; color: var(--muted); margin-bottom: 4px; text-align: center; }
-  .apple-plates { display: flex; gap: 10px; justify-content: center; }
+  .table-kid img { height: 104px; width: auto; display: block; }
+  .apple-bar.done .table-kid { transform: translateX(-50%) translateY(-7px) scale(1.08); }
+  .apple-bar.done .apple-plate { opacity: 0.35; }
+  .apple-bar-label { font-size: 0.7rem; font-weight: 850; color: var(--muted); margin-top: 3px; text-align: center; }
+  .table-img { position: relative; z-index: 2; width: 100%; height: auto; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.14)); }
+  .apple-plates {
+    position: absolute; z-index: 3; left: 8%; right: 8%; top: 2%; height: 44%;
+    display: flex; gap: 2px; justify-content: center; align-items: center;
+  }
+  /* 餐盘贴图（椭圆盘）+ 盘中苹果 */
   .apple-plate {
-    width: 92px;
-    height: 92px;
-    border-radius: 50%;
-    background: #fff;
-    border: 3px solid var(--ink);
-    box-shadow: 3px 3px 0 rgba(33,27,28,.16);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 74px;
+    aspect-ratio: 920 / 730;
     position: relative;
     transition: 0.15s;
   }
-  .apple-plate.correct { border-color: var(--green); background: #e8f8ef; }
-  .apple-plate.wrong { border-color: var(--pink-dark); background: #ffe3ee; }
-  .apple-plate .plate-content { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 72px; }
-  .apple-plate .plate-item { cursor: pointer; }
-  .apple-plate .plate-item svg { width: 34px; height: 34px; display: block; }
-  .apple-plate .plate-beats { font-size: 0.66rem; font-weight: 850; color: var(--ink); position: absolute; bottom: 3px; }
+  .plate-img { width: 100%; height: auto; display: block; }
+  .apple-plate.correct { filter: drop-shadow(0 0 5px rgba(43,155,103,.9)); }
+  .apple-plate.wrong { filter: drop-shadow(0 0 5px rgba(199,79,125,.9)); }
+  .apple-plate .plate-content {
+    position: absolute; inset: 16% 15%;
+    display: flex; gap: 1px; flex-wrap: wrap; justify-content: center; align-items: center;
+  }
+  .apple-plate .plate-item {
+    cursor: pointer; line-height: 0;
+    flex: 0 1 auto; width: 30px; max-width: 46%;
+  }
+  .apple-plate .apple-img { display: block; width: 100%; }
+  .apple-plate .apple-img img { width: 100%; height: auto; display: block; }
+  .apple-plate .plate-empty { font-size: 0.5rem; font-weight: 800; color: var(--muted); opacity: 0.7; }
+  .apple-plate .plate-beats {
+    position: absolute; left: 0; right: 0; bottom: 4%;
+    text-align: center; font-size: 0.46rem; font-weight: 850; color: var(--ink); opacity: 0.85;
+  }
   .apple-tray, .note-tray {
     display: flex;
     gap: 14px;
@@ -691,12 +699,12 @@
     user-select: none;
     -webkit-user-select: none;
   }
-  .apple-item svg { width: 44px; height: 44px; }
+  .apple-item .apple-img { width: 46px; }
   .apple-item .ai-name, .note-item .note-name { font-size: 0.72rem; font-weight: 850; color: var(--ink); }
   .apple-item .ai-beats, .note-item .note-beats { font-size: 0.62rem; font-weight: 800; color: var(--pink-dark); }
   .apple-item:active, .note-item:active { cursor: grabbing; }
   .apple-drag-clone, .note-drag-clone { position: fixed; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0.9; }
-  .apple-drag-clone svg { width: 44px; height: 44px; }
+  .apple-drag-clone .apple-img { width: 46px; }
   .apple-msg, .train-msg { font-size: 0.92rem; font-weight: 900; color: var(--pink-dark); min-height: 22px; }
 
   /* ========== 拍号小火车 ========== */
@@ -709,16 +717,33 @@
     100% { transform: translateX(-108%); opacity: 0.35; }
   }
   .train-engine { display: flex; flex-direction: column; align-items: center; }
-  .engine-svg { width: 96px; height: auto; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.16)); }
+  .engine-wrap { position: relative; display: block; }
+  .engine-img { width: 132px; height: auto; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.16)); }
+  .engine-plate {
+    position: absolute; left: 71%; top: 50%; transform: translate(-50%, -50%);
+    font-size: 1.05rem; font-weight: 950; color: var(--pink-dark);
+    background: var(--paper); border: 2.5px solid var(--ink); border-radius: 10px;
+    padding: 2px 8px; line-height: 1.15; white-space: nowrap;
+  }
   .carriage { display: flex; flex-direction: column; align-items: center; }
-  .carriage-body { position: relative; width: 84px; height: 104px; --c: #ffb7c9; }
-  .carriage-svg { width: 100%; height: 100%; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.12)); }
-  .carriage-svg .body { fill: var(--c); transition: fill 0.25s; }
-  .carriage-notes { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; max-width: 60px; }
+  .carriage-body { position: relative; width: 106px; }
+  .carriage-img { width: 100%; height: auto; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.12)); }
+  .carriage-notes { position: absolute; top: 28%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; max-width: 78%; }
   .carriage-note { cursor: pointer; padding: 1px; border-radius: 6px; }
-  .carriage-note svg { height: 22px; width: auto; display: block; }
-  .carriage-count { position: absolute; top: 60%; left: 0; right: 0; text-align: center; font-size: 0.64rem; font-weight: 850; color: var(--ink); }
+  .carriage-note svg { height: 18px; width: auto; display: block; }
+  .carriage-count {
+    position: absolute; top: 52%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 0.58rem; font-weight: 850; color: var(--ink);
+    background: rgba(255,253,247,.88); border-radius: 6px; padding: 0 4px; white-space: nowrap;
+  }
   .carriage-empty { font-size: 1.4rem; line-height: 1; }
+  .carriage-badge {
+    position: absolute; top: -6px; right: 4px; width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 950; color: #fff; border: 2.5px solid var(--paper);
+  }
+  .carriage-badge.ok { background: var(--green); }
+  .carriage-badge.no { background: var(--pink-dark); }
   .bar-link { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 4px; }
   .bar-link .link-line { width: 12px; height: 3px; background: var(--ink); border-radius: 2px; }
   .bar-link .link-label { font-size: 0.62rem; font-weight: 850; color: var(--muted); writing-mode: vertical-rl; margin: 3px 0; }

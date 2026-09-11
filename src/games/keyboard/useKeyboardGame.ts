@@ -6,6 +6,7 @@ import {
   MELODY_BEAT_MS,
   NOTE_LABEL,
   noteToTask,
+  shuffledAnimals,
   shuffleTasks,
   songList,
   TASK_POOL,
@@ -38,6 +39,8 @@ export function useKeyboardGame(visible: boolean) {
   const [selectedAnimal, setSelectedAnimal] = useState<AnimalKey | null>(null);
   const [taskIndex, setTaskIndex] = useState(0);
   const [tasks, setTasks] = useState<PlaceTask[]>(() => [...TASK_POOL]);
+  /** 动物栏顺序：认识音名按固定顺序，帮我找位置打乱 */
+  const [animalOrder, setAnimalOrder] = useState<AnimalKey[]>(() => shuffledAnimals());
   const [songIndex, setSongIndex] = useState(0);
   const [segmentIndex, setSegmentIndex] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -317,6 +320,7 @@ export function useKeyboardGame(visible: boolean) {
             const shuffled = shuffleTasks();
             setTasks(shuffled);
             setTaskIndex(0);
+            if (levelRef.current === 2) setAnimalOrder(shuffledAnimals());
             setMessageHtml('🎉 全部完成！再来一轮！<span class="en">All done! Another round!</span>');
             renderLearnTask(shuffled, 0, 2);
             return;
@@ -367,10 +371,12 @@ export function useKeyboardGame(visible: boolean) {
     if (next === 1) {
       const list = [...TASK_POOL];
       setTasks(list);
+      setAnimalOrder(Object.keys(animalData) as AnimalKey[]);
       renderLearnTask(list, 0, 1);
     } else if (next === 2) {
       const list = shuffleTasks();
       setTasks(list);
+      setAnimalOrder(shuffledAnimals());
       renderLearnTask(list, 0, 2);
       kbTimeout(playDragDemo, 400);
     } else if (next === 3) {
@@ -552,6 +558,7 @@ export function useKeyboardGame(visible: boolean) {
   return {
     level,
     switchLevel,
+    animalOrder,
     selectedAnimal,
     onAnimalSelect,
     onKeyClick,

@@ -137,6 +137,16 @@ export function shuffleTasks(pool: PlaceTask[] = TASK_POOL): PlaceTask[] {
   return arr;
 }
 
+/** 动物栏顺序（「帮我找位置」里打乱，避免孩子靠位置记忆） */
+export function shuffledAnimals(): AnimalKey[] {
+  const keys = Object.keys(animalData) as AnimalKey[];
+  for (let i = keys.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [keys[i], keys[j]] = [keys[j], keys[i]];
+  }
+  return keys;
+}
+
 export const MELODY_BEAT_MS = 480;
 export const NOTE_LABEL: Record<NoteName, string> = {
   C4: "C",

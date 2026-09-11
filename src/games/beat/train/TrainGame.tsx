@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "../../../context/AppContext";
 import {
-  CARRIAGE_COLORS,
+  CARRIAGE_IMGS,
   carriageSum,
   emptyCarriages,
   TIME_SIGS,
+  TRAIN_ENGINE_IMGS,
   TRAIN_NOTES,
+  trainColorIndex,
   trainStatus,
   type TrainNoteKey,
 } from "./logic";
@@ -17,36 +19,13 @@ type Drag = {
   pointerId: number | null;
 };
 
-function EngineSvg({ ts }: { ts: string }) {
+/** 车头贴图 + 车厢侧面的拍号车牌 */
+function Engine({ ts, colorIdx }: { ts: string; colorIdx: number }) {
   return (
-    <svg className="engine-svg" viewBox="0 0 110 112" aria-label="火车头">
-      <circle cx="52" cy="12" r="7" fill="#EAF5FF" opacity="0.85" />
-      <circle cx="60" cy="5" r="4.5" fill="#EAF5FF" opacity="0.6" />
-      <rect x="42" y="16" width="20" height="15" rx="3.5" fill="#FF8FAB" stroke="#211b1c" strokeWidth="2.5" />
-      <text x="70" y="26" fontSize="13">
-        🍄
-      </text>
-      <path
-        d="M 10 52 Q 10 32 32 32 L 78 32 Q 100 32 100 52 L 100 72 Q 100 80 92 80 L 18 80 Q 10 80 10 72 Z"
-        fill="#FFB3C6"
-        stroke="#211b1c"
-        strokeWidth="3"
-      />
-      <circle cx="20" cy="40" r="2.5" fill="#fff" opacity="0.6" />
-      <circle cx="30" cy="72" r="2.5" fill="#fff" opacity="0.6" />
-      <circle cx="88" cy="68" r="2.5" fill="#fff" opacity="0.6" />
-      <circle cx="78" cy="46" r="10" fill="#fff" stroke="#FF8FAB" strokeWidth="2.5" />
-      <circle cx="78" cy="46" r="3.5" fill="#FFD6E0" />
-      <circle cx="36" cy="46" r="3" fill="#211b1c" />
-      <circle cx="54" cy="46" r="3" fill="#211b1c" />
-      <path d="M 40 53 Q 45 58 50 53" stroke="#211b1c" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <rect x="30" y="60" width="32" height="18" rx="5" fill="#fff" />
-      <text x="46" y="73" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#c74f7d">
-        {ts}
-      </text>
-      <circle cx="34" cy="94" r="10" fill="#211b1c" stroke="#fff" strokeWidth="2.5" />
-      <circle cx="66" cy="94" r="10" fill="#211b1c" stroke="#fff" strokeWidth="2.5" />
-    </svg>
+    <div className="engine-wrap">
+      <img className="engine-img" src={TRAIN_ENGINE_IMGS[colorIdx]} alt="火车头" draggable={false} />
+      <span className="engine-plate">{ts}</span>
+    </div>
   );
 }
 
@@ -169,6 +148,8 @@ export function TrainGame() {
     d.clone.style.top = `${e.clientY}px`;
   };
 
+  const colorIdx = trainColorIndex(ts);
+
   return (
     <div>
       <div className="train-ts">
@@ -201,13 +182,10 @@ export function TrainGame() {
           }}
         >
           <div className="train-engine">
-            <EngineSvg ts={ts} />
+            <Engine ts={ts} colorIdx={colorIdx} />
           </div>
           {carriages.map((notes, i) => {
             const sum = carriageSum(notes);
-            let color = CARRIAGE_COLORS[i % 4];
-            if (sum === beatsPerBar) color = "#A8E6B8";
-            else if (sum > beatsPerBar) color = "#FFA8B0";
             const statusClass = sum === beatsPerBar ? " correct" : sum > beatsPerBar ? " wrong" : "";
             return (
               <div key={i} style={{ display: "contents" }}>
@@ -217,16 +195,8 @@ export function TrainGame() {
                   <span className="link-line" />
                 </div>
                 <div className="carriage" data-carriage={i}>
-                  <div className={`carriage-body${statusClass}`} style={{ ["--c" as string]: color }}>
-                    <svg className="carriage-svg" viewBox="0 0 84 104">
-                      <rect className="body" x="4" y="12" width="76" height="60" rx="16" stroke="#211b1c" strokeWidth="3" />
-                      <circle cx="16" cy="26" r="2.5" fill="#fff" opacity="0.55" />
-                      <circle cx="30" cy="58" r="2.5" fill="#fff" opacity="0.55" />
-                      <circle cx="68" cy="26" r="2.5" fill="#fff" opacity="0.55" />
-                      <circle cx="54" cy="58" r="2.5" fill="#fff" opacity="0.55" />
-                      <circle cx="24" cy="90" r="9" fill="#211b1c" stroke="#fff" strokeWidth="2.5" />
-                      <circle cx="60" cy="90" r="9" fill="#211b1c" stroke="#fff" strokeWidth="2.5" />
-                    </svg>
+                  <div className={`carriage-body${statusClass}`}>
+                    <img className="carriage-img" src={CARRIAGE_IMGS[colorIdx]} alt="" draggable={false} />
                     <div className="carriage-notes">
                       {notes.map((type, ni) => (
                         <span
@@ -241,6 +211,8 @@ export function TrainGame() {
                     <div className="carriage-count">
                       {sum}/{beatsPerBar} 拍
                     </div>
+                    {statusClass === " correct" && <span className="carriage-badge ok">✓</span>}
+                    {statusClass === " wrong" && <span className="carriage-badge no">✗</span>}
                   </div>
                 </div>
               </div>

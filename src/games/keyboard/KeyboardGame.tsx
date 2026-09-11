@@ -181,6 +181,7 @@ export function KeyboardGame({ visible }: Props) {
         {kb.level !== 4 && (
           <AnimalBar
             level={kb.level}
+            order={kb.animalOrder}
             selected={kb.selectedAnimal}
             dragging={kb.dragging}
             onSelect={kb.onAnimalSelect}
