@@ -1,4 +1,5 @@
 import { assetUrl } from "../../../lib/assets";
+import { NOTE_SVG } from "../noteSvg";
 
 export const TIME_SIGS = [
   { label: "2/4", beats: 2, cn: "四二拍" },
@@ -16,18 +17,21 @@ export const APPLE_NOTES = {
     label: "四分音符 · 一拍",
     beats: 1,
     img: assetUrl("apple.png"),
+    noteSvg: NOTE_SVG.quarter,
   },
   half: {
     name: "半个苹果",
     label: "八分音符 · 半拍",
     beats: 0.5,
     img: assetUrl("apple-half.png"),
+    noteSvg: NOTE_SVG.eighth,
   },
   quarter: {
     name: "四分之一苹果",
     label: "十六分音符 · ¼ 拍",
     beats: 0.25,
     img: assetUrl("apple-quarter.png"),
+    noteSvg: NOTE_SVG.sixteenth,
   },
 } as const;
 

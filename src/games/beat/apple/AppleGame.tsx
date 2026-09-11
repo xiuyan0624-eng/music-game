@@ -12,6 +12,7 @@ import {
   type AppleNoteType,
   type AppleTables,
 } from "./logic";
+import { SPARKLE_SVG } from "../noteSvg";
 
 const PLATE_TARGET = 1;
 
@@ -30,6 +31,10 @@ function AppleIcon({ type }: { type: AppleNoteType }) {
       <img src={APPLE_NOTES[type].img} alt="" draggable={false} />
     </span>
   );
+}
+
+function NoteGlyph({ html }: { html: string }) {
+  return <span className="ac-note" dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /** 一张餐桌：圆桌贴图 + 桌边小动物 + 桌上餐盘 */
@@ -185,7 +190,7 @@ export function AppleGame() {
     };
   }, [audio]);
 
-  const onTrayPointerDown = (type: AppleNoteType, e: React.PointerEvent) => {
+  const onCardPointerDown = (type: AppleNoteType, e: React.PointerEvent) => {
     const d = dragRef.current;
     if (d.active) return;
     try {
@@ -237,11 +242,13 @@ export function AppleGame() {
           {TIME_SIGS.find((x) => x.label === ts)?.cn} {ts} <span className="en">{beats} beats per bar</span>
         </div>
         <div className="apple-knowledge">
+          <span className="ac-sparkles" aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPARKLE_SVG }} />
           {(Object.keys(APPLE_NOTES) as AppleNoteType[]).map((type) => {
             const n = APPLE_NOTES[type];
             return (
-              <div className="apple-card" key={type}>
+              <div className="apple-card" key={type} onPointerDown={(e) => onCardPointerDown(type, e)}>
                 <AppleIcon type={type} />
+                <NoteGlyph html={n.noteSvg} />
                 <span className="ac-name">{n.name}</span>
                 <span className="ac-beats">{n.label.split(" · ")[0]} = {beatLabel(n.beats * scale)}</span>
               </div>
@@ -303,19 +310,6 @@ export function AppleGame() {
             </div>
           </TableShell>
         ))}
-      </div>
-      <div className="apple-tray">
-        <span className="apple-tray-label">🎵 把苹果拖到餐盘里（点餐盘里的苹果可拿出）：</span>
-        {(Object.keys(APPLE_NOTES) as AppleNoteType[]).map((type) => {
-          const n = APPLE_NOTES[type];
-          return (
-            <div key={type} className="apple-item" onPointerDown={(e) => onTrayPointerDown(type, e)}>
-              <AppleIcon type={type} />
-              <span className="ai-name">{n.name}</span>
-              <span className="ai-beats">{beatLabel(n.beats * scale)}</span>
-            </div>
-          );
-        })}
       </div>
       <div className="apple-msg" dangerouslySetInnerHTML={{ __html: msg }} />
     </div>

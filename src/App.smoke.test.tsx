@@ -45,6 +45,10 @@ describe("classroom smoke", () => {
     expect(trainBtn).toBeTruthy();
     expect((appleBtn as HTMLButtonElement).hidden).toBe(false);
     expect((trainBtn as HTMLButtonElement).hidden).toBe(false);
+    click(appleBtn!);
+    expect(host.textContent).not.toContain("把苹果拖到餐盘里");
+    expect(host.querySelectorAll(".apple-card")).toHaveLength(3);
+    expect(host.querySelectorAll(".apple-card .ac-note svg")).toHaveLength(3);
   });
 
   it("opens keyboard game and keeps four levels", () => {

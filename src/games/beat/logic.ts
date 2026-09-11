@@ -1,4 +1,5 @@
 import { assetUrl } from "../../lib/assets";
+import { NOTE_SVG } from "./noteSvg";
 
 export type NoteKey = "quarter" | "half" | "dottedHalf" | "whole";
 
@@ -16,28 +17,28 @@ export const beatNotePool: Record<NoteKey, BeatNote> = {
     taps: 1,
     animalSrc: assetUrl("beat-quarter.png"),
     animalAlt: "四分音符",
-    noteSvg: `<svg width="14" height="34" viewBox="0 0 20 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#211b1c"/><rect x="14" y="6" width="3" height="28" fill="#211b1c"/></svg>`,
+    noteSvg: NOTE_SVG.quarter,
   },
   half: {
     name: "二分音符",
     taps: 2,
     animalSrc: assetUrl("beat-half.png"),
     animalAlt: "二分音符",
-    noteSvg: `<svg width="14" height="34" viewBox="0 0 20 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#fffdf7" stroke="#211b1c" stroke-width="2.5"/><rect x="14" y="6" width="3" height="28" fill="#211b1c"/></svg>`,
+    noteSvg: NOTE_SVG.half,
   },
   dottedHalf: {
     name: "附点二分音符",
     taps: 3,
     animalSrc: assetUrl("beat-dotted-half.png"),
     animalAlt: "附点二分音符",
-    noteSvg: `<svg width="20" height="34" viewBox="0 0 28 44"><ellipse cx="8" cy="32" rx="7" ry="5" fill="#fffdf7" stroke="#211b1c" stroke-width="2.5"/><rect x="14" y="6" width="3" height="28" fill="#211b1c"/><circle cx="22" cy="36" r="4" fill="#211b1c"/></svg>`,
+    noteSvg: NOTE_SVG.dottedHalf,
   },
   whole: {
     name: "全音符",
     taps: 4,
     animalSrc: assetUrl("beat-whole.png"),
     animalAlt: "全音符",
-    noteSvg: `<svg width="16" height="28" viewBox="0 0 24 36"><ellipse cx="12" cy="22" rx="9" ry="7" fill="#fffdf7" stroke="#211b1c" stroke-width="2.5"/></svg>`,
+    noteSvg: NOTE_SVG.whole,
   },
 };
 

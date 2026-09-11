@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyBeatTap, buildLearnQuestions, buildRandomGroupQuestions } from "./logic";
+import { NOTE_SVG } from "./noteSvg";
 
 describe("buildLearnQuestions", () => {
   it("walks quarter through whole in order", () => {
@@ -37,5 +38,16 @@ describe("applyBeatTap", () => {
       tapCount: 4,
       outcome: "all",
     });
+  });
+});
+
+describe("NOTE_SVG", () => {
+  it("draws cartoon notes with the reference colors and rounded flags", () => {
+    expect(NOTE_SVG.quarter).toContain("#FF9BC4");
+    expect(NOTE_SVG.eighth).toContain("#8ED352");
+    expect(NOTE_SVG.sixteenth).toContain("#74CBF5");
+    expect(NOTE_SVG.eighth).toContain("stroke-linecap=\"round\"");
+    expect(NOTE_SVG.eighth).toContain("C60 10 74 18");
+    expect(NOTE_SVG.sixteenth).toContain("C60 30 74 38");
   });
 });

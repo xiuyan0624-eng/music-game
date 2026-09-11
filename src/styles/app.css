@@ -363,9 +363,9 @@
     min-height: 24px;
   }
   .beat-note .animal-part img { width: 168px; height: 168px; object-fit: contain; border-radius: 22px; display: block; }
-  .beat-note .note-part svg { width: 40px; height: auto; }
+  .beat-note .note-part svg { height: 56px; width: auto; overflow: visible; }
   .beat-item .animal-icon img { width: 92px; height: 92px; object-fit: contain; border-radius: 16px; display: block; }
-  .beat-item .note-icon svg { width: 30px; height: auto; }
+  .beat-item .note-icon svg { height: 40px; width: auto; overflow: visible; }
   .animal-avatar {
     width: 52px;
     height: 52px;
@@ -603,7 +603,9 @@
   .ts-btn.active { background: var(--pink); }
   .apple-top { text-align: center; margin-bottom: 6px; }
   .apple-ts { font-size: 1.35rem; font-weight: 950; color: var(--pink-dark); }
-  .apple-knowledge { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 8px 0; }
+  .apple-knowledge { display: flex; gap: 14px; justify-content: center; align-items: flex-end; flex-wrap: wrap; margin: 8px 0; }
+  .ac-sparkles { display: flex; align-items: flex-start; padding-bottom: 36px; }
+  .ac-sparkles svg { height: 34px; width: auto; display: block; }
   .apple-card {
     display: flex;
     flex-direction: column;
@@ -612,13 +614,30 @@
     background: #fff7dc;
     border: 3px solid var(--ink);
     border-radius: 18px 15px 20px 14px;
-    padding: 8px 12px;
+    padding: 10px 16px 12px;
     box-shadow: 4px 4px 0 rgba(33,27,28,.18);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: .14s ease;
   }
+  .apple-card:hover { transform: translate(-1px,-2px); box-shadow: 6px 6px 0 rgba(33,27,28,.18); }
+  .apple-card:active { cursor: grabbing; transform: translate(2px,2px); box-shadow: 2px 2px 0 rgba(33,27,28,.18); }
   /* 苹果贴图：完整 / 半个 / 四分之一 */
   .apple-img { display: block; width: 46px; line-height: 0; }
   .apple-img img { width: 100%; height: auto; display: block; }
   .apple-card .apple-img { width: 46px; }
+  .apple-card .ac-note {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    min-height: 52px;
+    min-width: 44px;
+    line-height: 0;
+    overflow: visible;
+  }
+  .apple-card .ac-note svg { height: 50px; width: auto; display: block; overflow: visible; }
   .apple-card .ac-name { font-size: 0.78rem; font-weight: 850; color: var(--ink); }
   .apple-card .ac-beats { font-size: 0.68rem; font-weight: 800; color: var(--pink-dark); }
   .apple-bars { display: flex; gap: 10px; overflow-x: auto; padding: 52px 4px 8px; margin: 8px 0; -webkit-overflow-scrolling: touch; }
@@ -670,7 +689,7 @@
     position: absolute; left: 0; right: 0; bottom: 4%;
     text-align: center; font-size: 0.46rem; font-weight: 850; color: var(--ink); opacity: 0.85;
   }
-  .apple-tray, .note-tray {
+  .note-tray {
     display: flex;
     gap: 14px;
     justify-content: center;
@@ -683,8 +702,8 @@
     margin: 8px 0;
     flex-wrap: wrap;
   }
-  .apple-tray-label, .note-tray-label { width: 100%; font-size: 0.8rem; font-weight: 850; color: var(--ink); }
-  .apple-item, .note-item {
+  .note-tray-label { width: 100%; font-size: 0.8rem; font-weight: 850; color: var(--ink); }
+  .note-item {
     cursor: grab;
     padding: 10px 14px;
     border-radius: 14px;
@@ -699,10 +718,9 @@
     user-select: none;
     -webkit-user-select: none;
   }
-  .apple-item .apple-img { width: 46px; }
-  .apple-item .ai-name, .note-item .note-name { font-size: 0.72rem; font-weight: 850; color: var(--ink); }
-  .apple-item .ai-beats, .note-item .note-beats { font-size: 0.62rem; font-weight: 800; color: var(--pink-dark); }
-  .apple-item:active, .note-item:active { cursor: grabbing; }
+  .note-item .note-name { font-size: 0.72rem; font-weight: 850; color: var(--ink); }
+  .note-item .note-beats { font-size: 0.62rem; font-weight: 800; color: var(--pink-dark); }
+  .note-item:active { cursor: grabbing; }
   .apple-drag-clone, .note-drag-clone { position: fixed; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0.9; }
   .apple-drag-clone .apple-img { width: 46px; }
   .apple-msg, .train-msg { font-size: 0.92rem; font-weight: 900; color: var(--pink-dark); min-height: 22px; }
@@ -730,7 +748,7 @@
   .carriage-img { width: 100%; height: auto; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.12)); }
   .carriage-notes { position: absolute; top: 28%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; max-width: 78%; }
   .carriage-note { cursor: pointer; padding: 1px; border-radius: 6px; }
-  .carriage-note svg { height: 18px; width: auto; display: block; }
+  .carriage-note svg { height: 24px; width: auto; display: block; overflow: visible; }
   .carriage-count {
     position: absolute; top: 52%; left: 50%; transform: translate(-50%, -50%);
     font-size: 0.58rem; font-weight: 850; color: var(--ink);
@@ -752,8 +770,8 @@
   .end-line { width: 4px; height: 74px; border-radius: 2px; background: var(--ink); }
   .end-line.thick { width: 8px; }
   .end-label { font-size: 0.62rem; font-weight: 850; color: var(--muted); writing-mode: vertical-rl; }
-  .note-item svg { height: 36px; width: auto; }
-  .note-drag-clone svg { height: 44px; width: auto; }
+  .note-item svg { height: 46px; width: auto; overflow: visible; }
+  .note-drag-clone svg { height: 54px; width: auto; overflow: visible; }
 
   .site-footer {
     width: min(980px, calc(100% - 40px));
@@ -790,7 +808,7 @@
     .task-box { font-size: 0.82rem; min-height: 55px; }
     .beat-key { width: 56px; height: 56px; font-size: 1.3rem; }
     .stage-btn { font-size: 0.72rem; padding: 7px 10px; }
-    .apple-item, .note-item { padding: 8px 10px; }
+    .note-item { padding: 8px 10px; }
     .animal-item { min-width: 44px; padding: 4px 5px; }
     .animal-item svg, .animal-item img, .animal-item .animal-avatar { width: 34px !important; height: 34px !important; }
     .melody-note { width: 28px; height: 28px; font-size: 0.75rem; }
