@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keyDisplay, noteToTask, songList, TASK_POOL } from "./data";
+import { animalData, keyDisplay, noteToTask, ORDERED_ANIMALS, songList, TASK_POOL } from "./data";
 
 describe("keyboard data", () => {
   it("maps notes to animals", () => {
@@ -16,5 +16,9 @@ describe("keyboard data", () => {
   it("labels middle C", () => {
     expect(keyDisplay("C4", true)).toBe("C (中央C)");
     expect(keyDisplay("G")).toBe("G");
+  });
+
+  it("keeps the canonical animal row in C D E F G A B order", () => {
+    expect(ORDERED_ANIMALS.map((key) => animalData[key].letter).join("")).toBe("CDEFGAB");
   });
 });

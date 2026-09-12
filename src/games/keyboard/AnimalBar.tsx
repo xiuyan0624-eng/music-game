@@ -1,4 +1,4 @@
-import { animalData, type AnimalKey } from "./data";
+import { animalData, ORDERED_ANIMALS, type AnimalKey } from "./data";
 
 type Props = {
   level: number;
@@ -12,7 +12,7 @@ type Props = {
 
 export function AnimalBar({ level, selected, dragging, order, onSelect, onPointerDown }: Props) {
   const showDragHint = level >= 2;
-  const keys = order ?? (Object.keys(animalData) as AnimalKey[]);
+  const keys = order ?? ORDERED_ANIMALS;
   return (
     <div className="animal-bar" id="animalBar">
       {keys.map((k) => {

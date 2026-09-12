@@ -6,6 +6,7 @@ import {
   MELODY_BEAT_MS,
   NOTE_LABEL,
   noteToTask,
+  ORDERED_ANIMALS,
   shuffledAnimals,
   shuffleTasks,
   songList,
@@ -39,8 +40,8 @@ export function useKeyboardGame(visible: boolean) {
   const [selectedAnimal, setSelectedAnimal] = useState<AnimalKey | null>(null);
   const [taskIndex, setTaskIndex] = useState(0);
   const [tasks, setTasks] = useState<PlaceTask[]>(() => [...TASK_POOL]);
-  /** 动物栏顺序：认识音名按固定顺序，帮我找位置打乱 */
-  const [animalOrder, setAnimalOrder] = useState<AnimalKey[]>(() => shuffledAnimals());
+  /** 动物栏顺序：认识音名与旋律游戏固定，只有帮我找位置打乱。 */
+  const [animalOrder, setAnimalOrder] = useState<AnimalKey[]>(() => [...ORDERED_ANIMALS]);
   const [songIndex, setSongIndex] = useState(0);
   const [segmentIndex, setSegmentIndex] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -371,7 +372,7 @@ export function useKeyboardGame(visible: boolean) {
     if (next === 1) {
       const list = [...TASK_POOL];
       setTasks(list);
-      setAnimalOrder(Object.keys(animalData) as AnimalKey[]);
+      setAnimalOrder([...ORDERED_ANIMALS]);
       renderLearnTask(list, 0, 1);
     } else if (next === 2) {
       const list = shuffleTasks();
@@ -380,6 +381,7 @@ export function useKeyboardGame(visible: boolean) {
       renderLearnTask(list, 0, 2);
       kbTimeout(playDragDemo, 400);
     } else if (next === 3) {
+      setAnimalOrder([...ORDERED_ANIMALS]);
       setSegmentIndex(0);
       setTaskIndex(0);
       renderMelodyView(false, songIndexRef.current, 0, 0);

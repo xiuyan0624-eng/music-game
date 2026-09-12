@@ -116,6 +116,27 @@ describe("classroom smoke", () => {
     expect(host.querySelectorAll(".key-white")).toHaveLength(7);
   });
 
+  it("shuffles Find Position but restores C D E F G A B in Melody Game", () => {
+    const originalRandom = Math.random;
+    Math.random = () => 0;
+    try {
+      const keyboard = [...host.querySelectorAll(".project-card")].find((el) => el.textContent?.includes("我是谁"));
+      click(keyboard!);
+
+      const findPosition = [...host.querySelectorAll(".level-tab")].find((el) => el.textContent?.includes("帮我找位置"));
+      click(findPosition!);
+      const findOrder = [...host.querySelectorAll(".animal-item .first-letter")].map((el) => el.textContent).join("");
+      expect(findOrder).not.toBe("CDEFGAB");
+
+      const melody = [...host.querySelectorAll(".level-tab")].find((el) => el.textContent?.includes("旋律游戏"));
+      click(melody!);
+      const melodyOrder = [...host.querySelectorAll(".animal-item .first-letter")].map((el) => el.textContent).join("");
+      expect(melodyOrder).toBe("CDEFGAB");
+    } finally {
+      Math.random = originalRandom;
+    }
+  });
+
   it("honors #beat and #keyboard hashes", () => {
     act(() => root.unmount());
     history.replaceState(null, "", "/#beat");

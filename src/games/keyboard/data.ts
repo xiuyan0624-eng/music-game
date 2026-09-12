@@ -21,6 +21,9 @@ export const animalData: Record<AnimalKey, Animal> = {
   bear: { key: "B", name: "小熊", letter: "B", en: "Bear", src: assetUrl("animal-bear.png") },
 };
 
+/** 固定音名顺序：认识音名与旋律游戏始终按 C D E F G A B 展示。 */
+export const ORDERED_ANIMALS: AnimalKey[] = ["cat", "dog", "elephant", "fox", "goat", "ant", "bear"];
+
 export const animalOfNote: Record<NoteName, AnimalKey> = {
   C4: "cat",
   D: "dog",
@@ -139,7 +142,7 @@ export function shuffleTasks(pool: PlaceTask[] = TASK_POOL): PlaceTask[] {
 
 /** 动物栏顺序（「帮我找位置」里打乱，避免孩子靠位置记忆） */
 export function shuffledAnimals(): AnimalKey[] {
-  const keys = Object.keys(animalData) as AnimalKey[];
+  const keys = [...ORDERED_ANIMALS];
   for (let i = keys.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [keys[i], keys[j]] = [keys[j], keys[i]];
