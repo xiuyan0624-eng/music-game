@@ -1,15 +1,24 @@
+import { useEffect } from "react";
 import { En } from "../../ui/En";
 import { BackButton } from "../../ui/BackButton";
 import { TabBar } from "../../ui/TabBar";
 import { useApp } from "../../context/AppContext";
-import { AppleGame } from "./apple/AppleGame";
-import { TrainGame } from "./train/TrainGame";
+import { AppleGame, APPLE_PRELOAD } from "./apple/AppleGame";
+import { TrainGame, TRAIN_PRELOAD } from "./train/TrainGame";
 import { BeatDisplay } from "./BeatDisplay";
 import { useBeatGame, type BeatStage } from "./useBeatGame";
 
 export function BeatGame() {
   const { goHome } = useApp();
   const { stage, loadStage, question, showQuiz, messageHtml, pressed, wrong, handleKey } = useBeatGame();
+
+  // 进入「节拍游戏」时静默预加载贴图，避免切到小游戏时图片还在下载
+  useEffect(() => {
+    [...TRAIN_PRELOAD, ...APPLE_PRELOAD].forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, []);
 
   return (
     <div className="panel active">

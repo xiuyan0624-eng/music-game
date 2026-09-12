@@ -794,11 +794,18 @@
     background: var(--paper); border: 2.5px solid var(--ink); border-radius: 10px;
     padding: 2px 8px; line-height: 1.15; white-space: nowrap;
   }
-  .carriage { display: flex; flex-direction: column; align-items: center; }
+  .carriage { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
   .carriage-body { position: relative; width: 106px; }
   .carriage-img { width: 100%; height: auto; display: block; filter: drop-shadow(3px 3px 0 rgba(33,27,28,.12)); }
   .carriage-notes { position: absolute; top: 28%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; max-width: 78%; }
-  .carriage-note { cursor: pointer; padding: 1px; border-radius: 6px; }
+  .carriage-note { cursor: pointer; padding: 3px; border-radius: 6px; }
+  .train-clear {
+    border: 3px solid var(--ink); background: var(--paper); color: var(--ink);
+    font-size: 0.78rem; font-weight: 850; padding: 9px 14px; border-radius: 14px;
+    cursor: pointer; box-shadow: 3px 3px 0 rgba(33,27,28,.16); transition: 0.15s;
+  }
+  .train-clear:hover { transform: translate(-1px,-2px); box-shadow: 5px 5px 0 var(--ink); background: #fff3a8; }
+  .train-clear:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
   .carriage-note svg { height: 24px; width: auto; display: block; overflow: visible; }
   .carriage-count {
     position: absolute; top: 52%; left: 50%; transform: translate(-50%, -50%);
@@ -859,7 +866,22 @@
     .task-box { font-size: 0.82rem; min-height: 55px; }
     .beat-key { width: 56px; height: 56px; font-size: 1.3rem; }
     .stage-btn { font-size: 0.72rem; padding: 7px 10px; }
-    .note-item { padding: 8px 10px; }
+    /* 小火车：手机上更紧凑，音符托盘不再占满屏 */
+    .note-tray { gap: 6px; padding: 8px; margin: 6px 0; }
+    .note-tray-label { font-size: 0.72rem; }
+    .note-item { padding: 5px 7px; gap: 1px; flex: 0 1 auto; }
+    .note-item svg { height: 26px; }
+    .note-item .note-name { font-size: 0.6rem; }
+    .note-item .note-beats { font-size: 0.54rem; }
+    .train-clear { font-size: 0.7rem; padding: 6px 10px; }
+    .train-scroll { margin-bottom: 8px; }
+    .carriage-body { width: 92px; }
+    .carriage-notes { max-width: 74%; }
+    .carriage-note svg { height: 20px; }
+    .engine-img { width: 114px; }
+    .engine-plate { font-size: 0.9rem; padding: 1px 6px; }
+    .bar-link { padding: 0 2px; }
+    .end-line { height: 60px; }
     .animal-item { min-width: 44px; padding: 4px 5px; }
     .animal-item svg, .animal-item img, .animal-item .animal-avatar { width: 34px !important; height: 34px !important; }
     .melody-note { width: 28px; height: 28px; font-size: 0.75rem; }
