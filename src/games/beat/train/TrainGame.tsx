@@ -12,6 +12,9 @@ import {
   type TrainNoteKey,
 } from "./logic";
 
+/** 进入节拍游戏时预加载的贴图 */
+export const TRAIN_PRELOAD = [...TRAIN_ENGINE_IMGS, ...CARRIAGE_IMGS];
+
 type Drag = {
   active: boolean;
   type: TrainNoteKey | null;
@@ -39,6 +42,8 @@ export function TrainGame() {
   const boxRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag>({ active: false, type: null, clone: null, pointerId: null });
   const winLock = useRef(false);
+  /** 最近一次拖放完成的时间，用于忽略紧随其后的 click */
+  const lastDropAt = useRef(0);
 
   const addNote = (type: TrainNoteKey, index: number) => {
     setCarriages((prev) => {
@@ -108,7 +113,10 @@ export function TrainGame() {
       d.active = false;
       d.type = null;
       d.pointerId = null;
-      if (el && type) addNote(type, Number(el.dataset.carriage));
+      if (el && type) {
+        addNote(type, Number(el.dataset.carriage));
+        lastDropAt.current = Date.now();
+      }
     };
     const onCancel = (e: PointerEvent) => {
       const d = dragRef.current;
@@ -172,15 +180,7 @@ export function TrainGame() {
         ))}
       </div>
       <div className="train-scroll">
-        <div
-          className={`train${going ? " train-go" : ""}`}
-          ref={boxRef}
-          onClick={(e) => {
-            const noteEl = (e.target as HTMLElement).closest<HTMLElement>(".carriage-note");
-            if (!noteEl) return;
-            removeNote(Number(noteEl.dataset.carriage), Number(noteEl.dataset.noteidx));
-          }}
-        >
+        <div className={`train${going ? " train-go" : ""}`} ref={boxRef}>
           <div className="train-engine">
             <Engine ts={ts} colorIdx={colorIdx} />
           </div>
@@ -194,7 +194,20 @@ export function TrainGame() {
                   <span className="link-label">小节</span>
                   <span className="link-line" />
                 </div>
-                <div className="carriage" data-carriage={i}>
+                <div
+                  className="carriage"
+                  data-carriage={i}
+                  onClick={(e) => {
+                    // 刚拖进来时忽略紧随的 click，避免放进去又被立刻拿掉
+                    if (Date.now() - lastDropAt.current < 400) return;
+                    if (!notes.length) return;
+                    const noteEl = (e.target as HTMLElement).closest<HTMLElement>(".carriage-note");
+                    // 点具体音符 → 拿掉那个；点车厢任意位置 → 拿掉最后一个
+                    const ni = noteEl ? Number(noteEl.dataset.noteidx) : notes.length - 1;
+                    removeNote(i, ni);
+                    audio.playBeep(320, 0.09);
+                  }}
+                >
                   <div className={`carriage-body${statusClass}`}>
                     <img className="carriage-img" src={CARRIAGE_IMGS[colorIdx]} alt="" draggable={false} />
                     <div className="carriage-notes">
@@ -228,7 +241,10 @@ export function TrainGame() {
         </div>
       </div>
       <div className="note-tray">
-        <span className="note-tray-label">🎵 把音符拖进车厢（点车厢里的音符可拿出）：</span>
+        <span className="note-tray-label">
+          🎵 把音符拖进车厢 · <b>点车厢就能拿掉音符</b>
+          <span className="en">Drag a note in · tap a car to undo</span>
+        </span>
         {(Object.keys(TRAIN_NOTES) as TrainNoteKey[]).map((type) => {
           const n = TRAIN_NOTES[type];
           return (
@@ -239,6 +255,19 @@ export function TrainGame() {
             </div>
           );
         })}
+        <button
+          type="button"
+          className="train-clear"
+          onClick={() => {
+            if (dragRef.current.active) return;
+            setCarriages(emptyCarriages());
+            setMsg("");
+            winLock.current = false;
+            audio.playBeep(300, 0.12);
+          }}
+        >
+          🧹 全部清空
+        </button>
       </div>
       <div className="train-msg" dangerouslySetInnerHTML={{ __html: msg }} />
     </div>

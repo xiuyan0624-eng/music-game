@@ -15,6 +15,15 @@ import {
 
 const PLATE_TARGET = 1;
 
+/** 进入节拍游戏时预加载的贴图 */
+export const APPLE_PRELOAD = [
+  APPLE_NOTES.whole.img,
+  APPLE_NOTES.half.img,
+  APPLE_NOTES.quarter.img,
+  TABLE_IMG,
+  PLATE_IMG,
+];
+
 /** 拍数文字：1 → 一拍，0.5 → 半拍，0.25 → ¼ 拍 */
 function beatLabel(beats: number): string {
   if (beats === 1) return "一拍";
